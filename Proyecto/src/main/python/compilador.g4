@@ -42,7 +42,7 @@ OTRO : . ;
 //   |
 //   ;
 
-for : instrucciones EOF ; //entrada
+programa : instrucciones EOF ; //entrada
 
 instrucciones : instruccion instrucciones
               |
@@ -50,6 +50,7 @@ instrucciones : instruccion instrucciones
 
 instruccion : asignacion PYC
             | declaracion PYC
+            | iincdec PYC
             | ifor
             | iif
             | iwhile
@@ -58,7 +59,11 @@ instruccion : asignacion PYC
 
 bloque : LLA instrucciones LLC ;
 
-iwhile : WHILE PA opal PC instruccion ;
+iwhile : WHILE PA opal PC instruccion 
+       | WHILE PA opal PC bloque
+       | WHILE PA comparator PC instruccion
+       | WHILE PA comparator PC bloque
+       ;
 
 iif : IF PA opal PC instruccion ielse ;
 
@@ -66,7 +71,8 @@ ielse : ELSE instruccion
       |
       ;
 
-ifor : FOR PA inicializacion PYC icomparator PYC iincdec  PC bloque;  //en teoria, todos los for
+ifor :FOR PA (inicializacion|) PYC (comparator|) PYC (iincdec|)  PC (bloque | instruccion)
+     ;  //en teoria, todos los for
      
 declaracion : tipo ID inic listavar
             | tipo ID inic listavar PYC
@@ -87,18 +93,16 @@ tipo : INT
 inicializacion :ID  //new
                | asignacion
                | declaracion
-               |
                ;
 
 iincdec : ID INCDEC //new
         | INCDEC ID
-        |
         ;
-icomparator : ID COMP ID //new
+
+comparator : ID COMP ID //new
             | ID COMP NUMERO 
             | NUMERO COMP ID
             | NUMERO COMP NUMERO
-            |
             ;
 
 asignacion : ID ASIG opal ;

@@ -9,8 +9,8 @@ else:
 
 class compiladorVisitor(ParseTreeVisitor):
 
-    # Visit a parse tree produced by compiladorParser#for.
-    def visitFor(self, ctx:compiladorParser.ForContext):
+    # Visit a parse tree produced by compiladorParser#programa.
+    def visitPrograma(self, ctx:compiladorParser.ProgramaContext):
         return self.visitChildren(ctx)
 
 
@@ -79,8 +79,8 @@ class compiladorVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by compiladorParser#icomparator.
-    def visitIcomparator(self, ctx:compiladorParser.IcomparatorContext):
+    # Visit a parse tree produced by compiladorParser#comparator.
+    def visitComparator(self, ctx:compiladorParser.ComparatorContext):
         return self.visitChildren(ctx)
 
 
