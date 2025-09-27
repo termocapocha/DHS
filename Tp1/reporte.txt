@@ -1,0 +1,150 @@
+1) Máxima y mínima registradas en el período por estación
+--------------------------------------------------------------------------------------------
+ESTACIÓN                                                        TMAX MAX(°C)    TMIN MIN(°C)
+------------------------------------------------------------  --------------  --------------
+AEROPARQUE AERO                                                         36.3             1.5
+AZUL AERO                                                               38.1            -7.7
+BAHIA BLANCA AERO                                                       39.3            -6.6
+BARILOCHE AERO                                                          33.4           -13.9
+BASE BELGRANO II                                                         5.9           -36.1
+BASE CARLINI (EX JUBANY)                                                10.0           -12.4
+BASE ESPERANZA                                                          14.7           -22.5
+BASE MARAMBIO                                                           14.1           -27.7
+BASE ORCADAS                                                            10.1           -23.5
+BASE SAN MARTIN                                                          8.7           -23.3
+BENITO JUAREZ                                                           37.0            -7.3
+BERNARDO DE IRIGOYEN AERO                                               33.1            -1.2
+BOLIVAR AERO                                                            38.5            -8.0
+BUENOS AIRES OBSERVATORIO                                               38.5            -1.9
+CAMPO DE MAYO AERO                                                      38.0            -6.7
+CATAMARCA AERO                                                          42.7            -6.2
+CERES AERO                                                              33.6            -4.5
+CHAMICAL AERO                                                           28.0            -3.6
+CHAPELCO AERO                                                           34.6           -15.0
+CHEPES                                                                  41.5            -6.6
+CHILECITO AERO                                                          38.2            -5.0
+COMODORO RIVADAVIA AERO                                                 37.1            -6.3
+CONCORDIA AERO                                                          41.8            -5.2
+CORDOBA AERO                                                            40.5            -8.1
+CORDOBA OBSERVATORIO                                                    42.2            -3.4
+CORONEL SUAREZ AERO                                                     36.4           -10.3
+CORRIENTES AERO                                                         41.4            -0.5
+DOLORES AERO                                                            28.8            -3.9
+EL BOLSON AERO                                                          36.1           -10.5
+EL CALAFATE AERO                                                        27.4           -14.1
+EL PALOMAR AERO                                                         38.0            -7.4
+ESCUELA DE AVIACION MILITAR AERO                                      (nada)            -7.0
+ESQUEL AERO                                                             33.7           -18.2
+EZEIZA AERO                                                             38.5            -4.6
+FORMOSA AERO                                                            41.5             1.4
+GENERAL PICO AERO                                                       39.6            -8.0
+GOBERNADOR GREGORES AERO                                                34.5           -14.0
+GUALEGUAYCHU AERO                                                       39.3            -6.4
+IGUAZU AERO                                                             37.3            -1.2
+ITUZAINGO                                                               40.5             0.3
+JACHAL                                                                  39.6            -8.1
+JUJUY AERO                                                              38.7            -2.8
+JUJUY U N                                                               37.0            -1.5
+JUNIN AERO                                                              37.6            -8.0
+LA PLATA AERO                                                           38.1            -5.2
+LA QUIACA OBSERVATORIO                                                  27.1           -10.2
+LA RIOJA AERO                                                           45.0            -5.0
+LABOULAYE AERO                                                          38.5            -7.1
+LAS FLORES                                                              39.5            -3.6
+LAS LOMITAS                                                             42.8             0.0
+MALARGUE AERO                                                           36.6           -16.0
+MAQUINCHAO                                                              39.0           -19.2
+MAR DEL PLATA AERO                                                      39.9            -6.3
+MARCOS JUAREZ AERO                                                      39.2            -8.0
+MARIANO MORENO AERO                                                   (nada)            -5.5
+MENDOZA AERO                                                            37.4            -6.7
+MENDOZA OBSERVATORIO                                                  (nada)            -6.0
+MERCEDES AERO (CTES)                                                    41.0            -1.8
+MERLO AERO                                                              33.9            -4.0
+METAN                                                                   40.0            -0.4
+MONTE CASEROS AERO                                                      40.6            -1.9
+MORON AERO                                                              38.0            -4.9
+NEUQUEN AERO                                                            42.1           -11.0
+NUEVE DE JULIO                                                          38.2            -3.8
+OBERA                                                                   37.0            -1.5
+OLAVARRIA AERO                                                          37.7            -6.7
+ORAN AERO                                                               41.0             1.9
+PARANA AERO                                                             38.7            -3.5
+PASO DE INDIOS                                                          37.7           -12.4
+PASO DE LOS LIBRES AERO                                                 41.7            -0.6
+PEHUAJO AERO                                                            38.7            -5.1
+PERITO MORENO AERO                                                      31.2           -14.6
+PIGUE AERO                                                              36.5            -6.8
+PILAR OBSERVATORIO                                                      41.2            -4.0
+POSADAS AERO                                                            39.0             1.2
+PRESIDENCIA ROQUE SAENZ PEÑA AERO                                       42.6            -4.5
+PUERTO DESEADO AERO                                                     35.0           -11.5
+PUERTO MADRYN AERO                                                      42.3           -11.6
+PUNTA INDIO B.A.                                                        35.0            -3.5
+RAFAELA AERO                                                            42.0            -4.2
+RECONQUISTA AERO                                                        43.7            -1.4
+RESISTENCIA AERO                                                        43.3            -2.2
+RIO CUARTO AERO                                                         27.6            -7.2
+RIO GALLEGOS AERO                                                       27.6           -13.6
+RIO GRANDE B.A.                                                         22.6            -8.8
+RIVADAVIA                                                               46.5             1.3
+ROSARIO AERO                                                            39.5            -6.8
+SALTA AERO                                                              37.5            -5.3
+SAN ANTONIO OESTE AERO                                                  24.6           -10.4
+SAN FERNANDO AERO                                                       37.9            -5.1
+SAN JUAN AERO                                                           44.0            -8.0
+SAN JULIAN AERO                                                         37.0           -11.3
+SAN LUIS AERO                                                           40.7            -6.7
+SAN MARTIN (MZA)                                                        42.7            -5.9
+SAN RAFAEL AERO                                                         39.5            -8.4
+SANTA CRUZ AERO                                                         34.3            -9.3
+SANTA ROSA AERO                                                         41.4            -7.3
+SANTA ROSA DE CONLARA AERO                                              40.6           -11.8
+SANTIAGO DEL ESTERO AERO                                                44.2            -3.5
+SAUCE VIEJO AERO                                                        40.9            -7.0
+SUNCHALES AERO                                                          42.5            -4.7
+TANDIL AERO                                                             37.7            -8.1
+TARTAGAL AERO                                                           39.1            -1.0
+TERMAS DE RIO HONDO AERO                                                42.7            -3.0
+TINOGASTA                                                               41.6            -8.5
+TRELEW AERO                                                             43.6           -13.2
+TRENQUE LAUQUEN                                                         38.5            -5.1
+TRES ARROYOS                                                            36.8            -5.0
+TUCUMAN AERO                                                            41.7            -0.6
+USHUAIA AERO                                                            19.1            -4.8
+USPALLATA                                                               36.7           -11.2
+VENADO TUERTO AERO                                                      37.2            -8.0
+VICTORICA                                                               41.1           -11.0
+VIEDMA AERO                                                             36.6            -5.4
+VILLA DE MARIA DEL RIO SECO                                             42.2            -8.4
+VILLA DOLORES AERO                                                      40.8            -8.4
+VILLA GESELL AERO                                                       39.1            -6.4
+VILLA REYNOLDS AERO                                                     41.0           -12.7
+
+--------------------------------------------------------------------------------------------
+
+2.a) Mayor amplitud térmica en un mismo día
+Estación: JACHAL
+Amplitud: 35.6 °C
+Fecha: 21/09/2024 (día 265 del año)
+
+2.b) Menor amplitud térmica en un mismo día
+Estación: BASE CARLINI (EX JUBANY)
+Amplitud: 0.7 °C
+Fecha: 28/11/2024 (día 333 del año)
+
+--------------------------------------------------------------------------------------------
+
+3.a) Máxima diferencia entre Tmax(estación A) y Tmin(estación B) en un día
+Fecha: 07/10/2024 (día 281 del año)
+Estación A (Tmax): LAS LOMITAS = 42.8 °C
+Estación B (Tmin): BASE BELGRANO II = -34.2 °C
+Diferencia: 77.0 °C
+
+3.b) Mínima diferencia entre Tmax(estación A) y Tmin(estación B) en un día
+Fecha: 06/10/2024 (día 280 del año)
+Estación A (Tmax): BASE BELGRANO II = -25.1 °C
+Estación B (Tmin): TARTAGAL AERO = 27.2 °C
+Diferencia: -52.3 °C
+
+--------------------------------------------------------------------------------------------
