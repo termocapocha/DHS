@@ -17,6 +17,8 @@ DIV : '/' ;
 MOD : '%' ;
 INCDEC : '++' | '--' ;
 COMP : '==' | '!=' | '<' | '<=' | '>' | '>=' ;
+LIT : 'true' | 'false' ;
+
 
 NUMERO : DIGITO+ ;
 
@@ -59,13 +61,10 @@ instruccion : asignacion PYC
 
 bloque : LLA instrucciones LLC ;
 
-iwhile : WHILE PA opal PC instruccion 
-       | WHILE PA opal PC bloque
-       | WHILE PA comparator PC instruccion
-       | WHILE PA comparator PC bloque
+iwhile : WHILE PA (opal|comparator|LIT) PC (instruccion|bloque)
        ;
 
-iif : IF PA opal PC instruccion ielse ;
+iif : IF PA (opal|comparator|LIT) PC instruccion ielse ;
 
 ielse : ELSE instruccion
       |

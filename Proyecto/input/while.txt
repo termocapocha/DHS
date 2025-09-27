@@ -1,0 +1,6 @@
+int x = 0;
+
+while(x)
+    while(true)
+        while(x==0)
+            x++;
