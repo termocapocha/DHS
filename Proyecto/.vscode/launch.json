@@ -11,11 +11,9 @@
             // Archivo con la gramatica
             "grammar": "${file}",
             // Archivo a parsear
-            // "input": "input/aritmetica.txt",
-            "input": "input/programa.txt",
+            "input": "input/for.txt",
             // Simbolo inicial
-            "startRule": "programa",
-            // "startRule": "exp",
+            "startRule": "for", //entrada
             // Muestra Arbol Sintactico
             "printParseTree": true,
             "visualParseTree": true

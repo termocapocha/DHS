@@ -1,9 +1,23 @@
-#include <stdio.h>
+int x = 0;
+int z=0;
+for (;;) {
+    for (int y=1;;) {
+        for (y;;) {
+            y=0;
+        }
+    }
+}
 
-int main () {
-    int x, a, z;
-    
-    for (x = 0, a = 1, z = 2; x < 5; ++x, a = a * z, printf("%d\n", a));
-    
-    return 0;
+for (;2==1;) {
+    for (;x==z;) {
+        for (;z==0;) {
+            z=1;
+        }
+    }
+}
+
+for (;;++x) {
+    for (;;--y) {
+            z=1;
+    }
 }

@@ -1,12 +1,12 @@
 Sobre las reglas gramaticales vistas en clases
 construya las siguientes:
 
-a) return
+a) return (por completar)
 b) declaraciones
-    1) con asignación simple -> int x = 0;
-    2) como lista de variables -> int x, y, z;
-    3) como lista con asignaciones -> int x = 0, y, z = x;
-c) Instrucción compuesta (bloque)
+    1) con asignación simple -> int x = 0; (completado)
+    2) como lista de variables -> int x, y, z;  (completado)
+    3) como lista con asignaciones -> int x = 0, y, z = x; (completado)
+c) Instrucción compuesta (bloque) (completado)
 d) while - if (vistos en clases)
-e) for (completar)
-f) Funciones: Prototipos y Definición
+e) for ((completado))
+f) Funciones: Prototipos y Definición (por completar)
