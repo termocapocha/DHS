@@ -15,6 +15,8 @@ RESTA : '-' ;
 MULT : '*' ;
 DIV : '/' ;
 MOD : '%' ;
+INCDEC : '++' | '--' ;
+COMP : '==' | '!=' | '<' | '<=' | '>' | '>=' ;
 
 NUMERO : DIGITO+ ;
 
@@ -46,8 +48,9 @@ instrucciones : instruccion instrucciones
               |
               ;
 
-instruccion : asignacion
-            | declaracion
+instruccion : asignacion PYC
+            | declaracion PYC
+            | ifor
             | iif
             | iwhile
             | bloque
@@ -63,9 +66,17 @@ ielse : ELSE instruccion
       |
       ;
 
-ifor : FOR PA  PYC  PYC  PC instruccion ;
-
-declaracion : tipo ID inic listavar PYC ;
+ifor : FOR PA PYC PYC PC bloque  //for(;;)
+     | FOR PA ID PYC PYC PC bloque  //for(x;;)
+     | FOR PA asignacion PYC PYC PC bloque  //for(x=1;;)
+     | FOR PA declaracion PYC PYC PC bloque //for(int x;;)
+     | FOR PA PYC icomparator PYC PC bloque //for(;x==0;) y (;x==y;)
+     | FOR PA PYC PYC iincdec PC bloque //for(;;x++) y (;;++x)
+     | FOR PA PYC icomparator PYC iincdec PC bloque //for(;x==0;x++) y (;x==y;++x)
+     ; 
+declaracion : tipo ID inic listavar
+            | tipo ID inic listavar PYC
+            ;
 
 listavar : COMA ID inic listavar
          |
@@ -79,7 +90,23 @@ tipo : INT
      | DOUBLE
      ;
 
-asignacion : ID ASIG opal PYC ;
+inicializacion :ID  //new
+               | asignacion
+               | declaracion
+               |
+               ;
+
+iincdec : ID INCDEC //new
+        | INCDEC ID
+        |
+        ;
+icomparator : ID COMP ID //new
+            | ID COMP NUMERO 
+            | NUMERO COMP ID
+            |
+            ;
+
+asignacion : ID ASIG opal ;
 
 opal : exp
      ;
