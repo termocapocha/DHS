@@ -99,6 +99,31 @@ class compiladorVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by compiladorParser#llamada.
+    def visitLlamada(self, ctx:compiladorParser.LlamadaContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#argumento.
+    def visitArgumento(self, ctx:compiladorParser.ArgumentoContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#masArgumento.
+    def visitMasArgumento(self, ctx:compiladorParser.MasArgumentoContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#largumento.
+    def visitLargumento(self, ctx:compiladorParser.LargumentoContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#masLargumento.
+    def visitMasLargumento(self, ctx:compiladorParser.MasLargumentoContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by compiladorParser#ireturn.
     def visitIreturn(self, ctx:compiladorParser.IreturnContext):
         return self.visitChildren(ctx)

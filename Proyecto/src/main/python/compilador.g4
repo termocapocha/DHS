@@ -58,6 +58,9 @@ instruccion : asignacion PYC
             | ifor
             | iif
             | iwhile
+            | funcion
+            | proto
+            | llamada PYC
             | bloque
             ;
 
@@ -76,7 +79,6 @@ ifor :FOR PA (inicializacion|) PYC (comparator|) PYC (iincdec|)  PC (bloque | in
      ;  //en teoria, todos los for
      
 declaracion : tipo ID inic listavar
-            | tipo ID inic listavar PYC
             ;
 
 listavar : COMA ID inic listavar
@@ -108,9 +110,19 @@ comparator : ID COMP ID //new
 
 asignacion : ID ASIG opal ;
 
-funcion:ID PA (declaracion|) PC PYC bloque;
+funcion: tipo ID PA argumento PC bloque; //int funcion(int x, double y,..){}
 
-proto: tipo ID PA (declaracion|) PC PYC ; //int funcion(int x, double y);
+proto: tipo ID PA argumento PC PYC ; //int funcion(int x, double y,...);
+
+llamada: ID PA largumento PC ; //funcion(x,y,...);
+
+argumento: tipo ID masArgumento|;  //el vacio es por si llego a tener una llamada "imprimir()"
+           
+masArgumento : COMA tipo ID masArgumento |; //fijar si se puede hacer un merge con listavar
+              
+largumento :  opal masLargumento|;
+
+masLargumento : COMA  opal masLargumento |;
 
 ireturn : RETURN (opal|LIT|comparator|) ;
 
@@ -135,4 +147,5 @@ t : MULT factor t
 factor : NUMERO
        | ID
        | PA exp PC
+       | llamada
        ;

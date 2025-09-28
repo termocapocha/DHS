@@ -1,4 +1,20 @@
-int funcion(int y, double z);
+int suma(int a, int b);
 
+int x=0,y,z=5,total;
+y=2;
 
+total=(x*y)/z;
 
+if (x < 10) {
+    total--;
+}else{
+    total++;
+}
+
+while(true)
+    for(;;)
+        suma(x,total);
+
+int suma(int a, int b) {
+    return a + b;
+}

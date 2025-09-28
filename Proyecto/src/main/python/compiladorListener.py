@@ -170,6 +170,51 @@ class compiladorListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by compiladorParser#llamada.
+    def enterLlamada(self, ctx:compiladorParser.LlamadaContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#llamada.
+    def exitLlamada(self, ctx:compiladorParser.LlamadaContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#argumento.
+    def enterArgumento(self, ctx:compiladorParser.ArgumentoContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#argumento.
+    def exitArgumento(self, ctx:compiladorParser.ArgumentoContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#masArgumento.
+    def enterMasArgumento(self, ctx:compiladorParser.MasArgumentoContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#masArgumento.
+    def exitMasArgumento(self, ctx:compiladorParser.MasArgumentoContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#largumento.
+    def enterLargumento(self, ctx:compiladorParser.LargumentoContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#largumento.
+    def exitLargumento(self, ctx:compiladorParser.LargumentoContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#masLargumento.
+    def enterMasLargumento(self, ctx:compiladorParser.MasLargumentoContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#masLargumento.
+    def exitMasLargumento(self, ctx:compiladorParser.MasLargumentoContext):
+        pass
+
+
     # Enter a parse tree produced by compiladorParser#ireturn.
     def enterIreturn(self, ctx:compiladorParser.IreturnContext):
         pass
