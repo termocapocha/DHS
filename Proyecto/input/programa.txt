@@ -1,7 +1,4 @@
-int x=0,y=0;
+int funcion(int y, double z);
 
-if(x)
-    if(x==y)
-        x=5;
-    else
-        y=5;
+
+

@@ -152,6 +152,33 @@ class compiladorListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by compiladorParser#funcion.
+    def enterFuncion(self, ctx:compiladorParser.FuncionContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#funcion.
+    def exitFuncion(self, ctx:compiladorParser.FuncionContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#proto.
+    def enterProto(self, ctx:compiladorParser.ProtoContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#proto.
+    def exitProto(self, ctx:compiladorParser.ProtoContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#ireturn.
+    def enterIreturn(self, ctx:compiladorParser.IreturnContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#ireturn.
+    def exitIreturn(self, ctx:compiladorParser.IreturnContext):
+        pass
+
+
     # Enter a parse tree produced by compiladorParser#opal.
     def enterOpal(self, ctx:compiladorParser.OpalContext):
         pass

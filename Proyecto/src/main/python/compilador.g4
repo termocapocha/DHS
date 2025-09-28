@@ -28,6 +28,7 @@ IF :    'if' ;
 ELSE :  'else' ;
 FOR :   'for' ;
 WHILE : 'while' ;
+RETURN : 'return' ;
 
 ID : (LETRA | '_')(LETRA | DIGITO | '_')* ;
 
@@ -53,6 +54,7 @@ instrucciones : instruccion instrucciones
 instruccion : asignacion PYC
             | declaracion PYC
             | iincdec PYC
+            | ireturn PYC
             | ifor
             | iif
             | iwhile
@@ -102,9 +104,15 @@ comparator : ID COMP ID //new
             | ID COMP NUMERO 
             | NUMERO COMP ID
             | NUMERO COMP NUMERO
-            ;
+     ;
 
 asignacion : ID ASIG opal ;
+
+funcion:ID PA (declaracion|) PC PYC bloque;
+
+proto: tipo ID PA (declaracion|) PC PYC ; //int funcion(int x, double y);
+
+ireturn : RETURN (opal|LIT|comparator|) ;
 
 opal : exp
      ;
