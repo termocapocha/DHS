@@ -16,7 +16,7 @@ MULT : '*' ;
 DIV : '/' ;
 MOD : '%' ;
 INCDEC : '++' | '--' ;
-COMP : '==' | '!=' | '<' | '<=' | '>' | '>=' ;
+COMP : '==' | '!=' | '<' | '<=' | '>' | '>='|'&&' | '||' ;
 LIT : 'true' | 'false' ;
 
 
@@ -45,7 +45,7 @@ OTRO : . ;
 //   |
 //   ;
 
-programa : instrucciones EOF ; //entrada
+for : instrucciones EOF ; //entrada
 
 instrucciones : instruccion instrucciones
               |

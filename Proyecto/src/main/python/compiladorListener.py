@@ -8,12 +8,12 @@ else:
 # This class defines a complete listener for a parse tree produced by compiladorParser.
 class compiladorListener(ParseTreeListener):
 
-    # Enter a parse tree produced by compiladorParser#programa.
-    def enterPrograma(self, ctx:compiladorParser.ProgramaContext):
+    # Enter a parse tree produced by compiladorParser#for.
+    def enterFor(self, ctx:compiladorParser.ForContext):
         pass
 
-    # Exit a parse tree produced by compiladorParser#programa.
-    def exitPrograma(self, ctx:compiladorParser.ProgramaContext):
+    # Exit a parse tree produced by compiladorParser#for.
+    def exitFor(self, ctx:compiladorParser.ForContext):
         pass
 
 
