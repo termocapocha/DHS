@@ -46,7 +46,7 @@ class Escucha (compiladorListener) :
                 
         else:
             
-            print("Contexto vacío")
+            print("Contexto vacio")
             
         self.tabla.quitar_contexto()  # eliminador de contexto
         
@@ -83,12 +83,12 @@ class Escucha (compiladorListener) :
             
             variable = ID(id_nombre, tipo) # crear y agregar la variable
             
-            if ctx.getChildCount() > 3:  # tiene más elementos además de tipo e ID
+            if ctx.getChildCount() > 3:  # tiene mas elementos ademas de tipo e ID
                 variable.initialized = True
             
             self.tabla.agregar_ID(variable)
             estado_init = "inicializada" if variable.initialized else "no inicializada"
-            print(f"  -- Se declaró variable |{id_nombre}| de tipo |{tipo}| ({estado_init})")
+            print(f"Se declaro variable |{id_nombre}| de tipo |{tipo}| ({estado_init})")
         
         # Procesar lista de variables adicionales si existe
         if ctx.getChildCount() > 3 and hasattr(ctx, 'listavar') and ctx.listavar():
@@ -132,7 +132,7 @@ class Escucha (compiladorListener) :
                     
                     estado_init = "inicializada" if variable.initialized else "no inicializada"
                     
-                    print(f"Se declaró {var_nombre} tipo |{tipo}| ({estado_init})")
+                    print(f"Se declaro {var_nombre} tipo |{tipo}| ({estado_init})")
             
             #recursividad (condicion=no hay mas variables en la lista)
             if hasattr(ctx_listavar, 'listavar') and ctx_listavar.listavar(): #hasattr (objeto,atriburo) =true =!false
@@ -141,6 +141,31 @@ class Escucha (compiladorListener) :
     def __str__(self):
         return "Se hicieron " + str(self.declaracion) + " declaraciones\n" + \
                 "Se visitaron " + str(self.numNodos) + " nodos"
+
+    def exitAsignacion(self, ctx:compiladorParser.AsignacionContext):
+
+        if ctx.ID():  # checkea si hay una ID
+            var_nombre = ctx.ID().getText()
+            
+            if not self.tabla.buscar_ID(var_nombre):
+                print(f"ERROR SEMANTICO: Variable {var_nombre} no declarada (asignacion)")
+            else:
+                print(f"asignacion valida a variable {var_nombre}")
+    
+    def exitFactor(self, ctx:compiladorParser.FactorContext):
+        
+        if ctx.ID():
+            var_nombre = ctx.ID().getText()
+            
+            if not self.tabla.buscar_ID(var_nombre):
+                print(f"ERROR SEMANTICO: Variable {var_nombre} no declarada (expresion)")
+            else:
+                
+                variable = self.tabla.devolver_ID(var_nombre)  # Marcar la variable como usada 
+                
+                if variable:
+                    variable.used = True
+                print(f"uso valido de variable {var_nombre}")
 
     def visitErrorNode(self, node: ErrorNode):
         print(" ---> ERROR")

@@ -19,7 +19,7 @@ class TablaSimbolos:
 
         self.contexto.pop()
 
-    def agregar_ID(self, ID): #añade un ID al contexto actual
+    def agregar_ID(self, ID): #agrega un ID al contexto actual
         
         self.contexto[-1][ID.nombre] = ID
 
