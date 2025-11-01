@@ -98,7 +98,7 @@ class Escucha (compiladorListener) :
         self.profundidad += 1
 
     def exitListavar(self, ctx:compiladorParser.ListavarContext):
-        print("  -- ListaVar(%d) Cant. hijos  = %d" % (self.profundidad, ctx.getChildCount()))
+        print("ListaVar(%d) Cant. hijos  = %d" % (self.profundidad, ctx.getChildCount()))
         self.profundidad -= 1
         if ctx.getChildCount() == 4 :
             print("      hoja ID --> |%s|" % ctx.getChild(1).getText())
@@ -158,7 +158,9 @@ class Escucha (compiladorListener) :
             var_nombre = ctx.ID().getText()
             
             if not self.tabla.buscar_ID(var_nombre):
+                
                 print(f"ERROR SEMANTICO: Variable {var_nombre} no declarada (expresion)")
+                
             else:
                 
                 variable = self.tabla.devolver_ID(var_nombre)  # Marcar la variable como usada 
@@ -166,6 +168,47 @@ class Escucha (compiladorListener) :
                 if variable:
                     variable.used = True
                 print(f"uso valido de variable {var_nombre}")
+
+    def enterPrototipo(self, ctx:compiladorParser.ProtoContext):
+        
+        print("  "*self.indent + "PROTOTIPO DE FUNCION")
+        
+        if ctx.getChildCount() >= 2: 
+
+            tipo_retorno = ctx.getChild(0).getText()
+            nombre_funcion = ctx.getChild(1).getText()
+            
+            print(f"Prototipo: {tipo_retorno} {nombre_funcion}(...)")
+            
+            if self.tabla.buscar_ID(nombre_funcion):  #verifica declaracion
+                print(f"ERROR SEMANTICO: Funcion {nombre_funcion} ya declarada")
+            else:
+    
+                funcion = FuncionCompilador(nombre_funcion, tipo_retorno, [])
+                self.tabla.agregar_ID(funcion)
+                print(f"Se declaro funcion {nombre_funcion} tipo retorno {tipo_retorno}")
+        else:
+            print(f"DEBUG: Prototipo con {ctx.getChildCount()} hijos: {ctx.getText()}")
+
+    def enterLlamada(self, ctx:compiladorParser.LlamadaContext):
+
+        print("  "*self.indent + "LLAMADA A FUNCION")
+        
+        if ctx.ID():
+            
+            nombre_funcion = ctx.ID().getText()
+            
+            funcion = self.tabla.devolver_ID(nombre_funcion) #si esta declarado
+            if not funcion:
+                print(f"ERROR SEMANTICO: Funcion {nombre_funcion} no declarada")
+            elif funcion.varFunc != "funcion":
+                print(f"ERROR SEMANTICO: {nombre_funcion} no es una funcion")
+            else:
+                print(f"Llamada valida a funcion {nombre_funcion}")
+                # Marcar funcion como usada
+                funcion.used = True
+        else:
+            print(f"DEBUG: Llamada sin ID - {ctx.getChildCount()} hijos: {ctx.getText()}")
 
     def visitErrorNode(self, node: ErrorNode):
         print(" ---> ERROR")
