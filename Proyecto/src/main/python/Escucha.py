@@ -2,18 +2,53 @@ from antlr4 import TerminalNode
 from antlr4 import ErrorNode
 from compiladorParser import compiladorParser
 from compiladorListener import compiladorListener
+from TablaSimbolos import *
 
 class Escucha (compiladorListener) :
-    indent = 1
-    declaracion = 0
-    profundidad = 0
-    numNodos = 0
-
-    def enterPrograma(self, ctx:compiladorParser.ProgramaContext):
+    
+    indent = 1          #variables
+    declaracion = 0     
+    profundidad = 0     
+    numNodos = 0        
+    tabla = None        
+    
+    def enterFor(self, ctx:compiladorParser.ForContext):
         print("Comienza el parsing")
+        
+        if self.tabla is None:
+            
+            self.tabla = TablaSimbolos()  #aca se inicializa la tabla
 
-    def exitPrograma(self, ctx:compiladorParser.ProgramaContext):
+    def exitFor(self, ctx:compiladorParser.ForContext):
         print("Fin del parsing")
+
+    def enterBloque(self, ctx:compiladorParser.BloqueContext): #"{"
+        print("  "*self.indent + "Abriendo Bloque")
+        self.tabla.agregar_contexto()  # Nuevo ámbito
+        print(f"Contextos activos: {len(self.tabla.contexto)}")
+        self.indent += 1
+
+    def exitBloque(self, ctx:compiladorParser.BloqueContext): #"}"
+        self.indent -= 1
+        print("  "*self.indent + "Fin Bloque")
+        
+        contexto_actual = self.tabla.contexto[-1]  # Snapshot antes de eliminar el contexto
+        
+        if contexto_actual:
+            
+            print("Variables del contexto:")
+            
+            for nombre, simbolo in contexto_actual.items():
+                
+                print(f"- {nombre}: {simbolo.tipo}")
+                
+        else:
+            
+            print("Contexto vacío")
+            
+        self.tabla.quitar_contexto()  # eliminador de contexto
+        
+        print(f"Contextos restantes: {len(self.tabla.contexto)}")
 
     def enterIwhile(self, ctx:compiladorParser.IwhileContext):
         print("  "*self.indent + "Comienza while")

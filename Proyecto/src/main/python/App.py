@@ -3,7 +3,6 @@ from antlr4 import *
 from compiladorLexer  import compiladorLexer
 from compiladorParser import compiladorParser
 from Escucha import Escucha
-from Caminante import Caminante
 
 # En caso de no poder ejecutar el programa Python por
 # problemas de version (error ATNdeserializer), se
@@ -21,13 +20,10 @@ def main(argv):
     lexer = compiladorLexer(input)
     stream = CommonTokenStream(lexer)
     parser = compiladorParser(stream)
-    # escucha = Escucha()
-    # parser.addParseListener(escucha)
-    tree = parser.programa()
-    visitante = Caminante()
-    visitante.visitPrograma(tree)
-    visitante.printNumeroHojas()
-    # print(escucha)
+    escucha = Escucha()
+    parser.addParseListener(escucha)
+    tree = parser.for_()
+    print(escucha)
     # print(tree.toStringTree(recog=parser))
 
 if __name__ == '__main__':
