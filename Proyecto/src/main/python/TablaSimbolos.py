@@ -48,15 +48,13 @@ class ID:
     
     def __init__(self, nombre, tipo):
         
-        self.nombre = nombre        # Nombre ID
+        self.nombre = nombre        # Nombre del identificador
         self.tipo = tipo           # Tipo de dato
-        self.initialized = False
-        self.used = False
-        self.varFunc = "variable" #variable o funcion
+        self.varFunc = "variable" # Indica si es "variable" o "funcion"
 
     def toString(self): #ID a string 
 
-        return f'(name->{self.nombre},tipo->{self.tipo},init->{self.initialized},used->{self.used},varFun->{self.varFunc})'
+        return f'(name->{self.nombre},tipo->{self.tipo},varFun->{self.varFunc})'
 
 
 class VariableCompilador(ID): #repesenta una variable
@@ -68,5 +66,4 @@ class FuncionCompilador(ID): #representa una funcion
     def __init__(self, nombre, tipo, parametros): #constructor (de la funcion)
 
         super().__init__(nombre, tipo) 
-        self.parametros = parametros    
         self.varFunc = "funcion"      
