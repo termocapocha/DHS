@@ -63,11 +63,11 @@ class Escucha (compiladorListener) :
 
     def enterDeclaracion(self, ctx:compiladorParser.DeclaracionContext):
         self.declaracion += 1
-        print("Declaracion ENTER -> |" + ctx.getText() + "|")
+        print("Declaracion ENTER -> <" + ctx.getText() + ">")
         print("Cant. hijos = " + str(ctx.getChildCount()))
     
     def exitDeclaracion(self, ctx:compiladorParser.DeclaracionContext):
-        print("Declaracion EXIT  -> |" + ctx.getText() + "|")
+        print("Declaracion EXIT  -> <" + ctx.getText() + ">")
         
 
         tipo = ctx.getChild(0).getText() # tipo variable  
@@ -89,7 +89,7 @@ class Escucha (compiladorListener) :
             
             self.tabla.agregar_ID(variable)
             estado_init = "inicializada" if variable.initialized else "no inicializada"
-            print(f"Se declaro variable |{id_nombre}| de tipo |{tipo}| ({estado_init})")
+            print(f"Se declaro variable {id_nombre} de tipo {tipo} ({estado_init})")
         
         # Procesar lista de variables adicionales si existe
         if ctx.getChildCount() > 3 and hasattr(ctx, 'listavar') and ctx.listavar():
@@ -102,7 +102,7 @@ class Escucha (compiladorListener) :
         print("ListaVar(%d) Cant. hijos  = %d" % (self.profundidad, ctx.getChildCount()))
         self.profundidad -= 1
         if ctx.getChildCount() == 4 :
-            print("      hoja ID --> |%s|" % ctx.getChild(1).getText())
+            print("      hoja ID --> %s" % ctx.getChild(1).getText())
 
     # def visitTerminal(self, node: TerminalNode):
     #     print(" ---> Token: " + node.getText())
@@ -133,7 +133,7 @@ class Escucha (compiladorListener) :
                     
                     estado_init = "inicializada" if variable.initialized else "no inicializada"
                     
-                    print(f"Se declaro {var_nombre} tipo |{tipo}| ({estado_init})")
+                    print(f"Se declaro {var_nombre} tipo {tipo} ({estado_init})")
             
             #recursividad (condicion=no hay mas variables en la lista)
             if hasattr(ctx_listavar, 'listavar') and ctx_listavar.listavar(): #hasattr (objeto,atriburo) =true =!false
