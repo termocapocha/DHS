@@ -21,6 +21,7 @@ class Escucha (compiladorListener) :
 
     def exitFor(self, ctx:compiladorParser.ForContext):
         print("Fin del parsing")
+        self.reporteVariableNoUtilizadas()
 
     def enterBloque(self, ctx:compiladorParser.BloqueContext): #"{"
         print("  "*self.indent + "Abriendo Bloque")
@@ -209,6 +210,59 @@ class Escucha (compiladorListener) :
                 funcion.used = True
         else:
             print(f"DEBUG: Llamada sin ID - {ctx.getChildCount()} hijos: {ctx.getText()}")
+
+    def reporteVariableNoUtilizadas(self):
+        
+        print("\n" + "="*50)
+        print("REPORTE DE VARIABLES NO UTILIZADAS")
+        print("="*50)
+        
+        variables_no_utilizadas = []
+        funciones_no_utilizadas = []
+        
+        for i, contexto in enumerate(self.tabla.contexto): #recorre la tabla de simbolos
+            
+            for nombre, simbolo in contexto.items():
+                
+                if not simbolo.used:
+                    
+                    if simbolo.varFunc == "variable":
+                        
+                        variables_no_utilizadas.append((nombre, simbolo.tipo, i))
+                        
+                    elif simbolo.varFunc == "funcion":
+                        
+                        funciones_no_utilizadas.append((nombre, simbolo.tipo, i))
+        
+        
+        if variables_no_utilizadas:
+            
+            print(f"\nWARNING: {len(variables_no_utilizadas)} variable(s) no utilizada(s):")
+            
+            for nombre, tipo, contexto_id in variables_no_utilizadas:
+                
+                print(f"Variable '{nombre}' tipo '{tipo}' (contexto {contexto_id})")
+                
+        else:
+            
+            print("\nTodas las variables declaradas fueron utilizadas")
+        
+         
+        if funciones_no_utilizadas:
+            
+            print(f"\nWARNING: {len(funciones_no_utilizadas)} funcion(es) no utilizada(s):")
+            
+            for nombre, tipo, contexto_id in funciones_no_utilizadas:
+                
+                print(f"Funcion '{nombre}' tipo '{tipo}' (contexto {contexto_id})")
+                
+        else:
+            
+            print("\nTodas las variables declaradas fueron utilizadas")
+
+        if funciones_no_utilizadas:
+
+            print(f"\nWARNING: {len(funciones_no_utilizadas)} funcion(es) no utilizada(s):")
 
     def visitErrorNode(self, node: ErrorNode):
         print(" ---> ERROR")
