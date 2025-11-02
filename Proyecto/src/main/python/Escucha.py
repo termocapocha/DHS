@@ -151,7 +151,23 @@ class Escucha (compiladorListener) :
             if not self.tabla.buscar_ID(var_nombre):
                 print(f"ERROR SEMANTICO: Variable {var_nombre} no declarada (asignacion)")
             else:
-                print(f"asignacion valida a variable {var_nombre}")
+                variable = self.tabla.devolver_ID(var_nombre) #obtiene la variable
+                
+                if variable and variable.varFunc == "variable":
+                    tipo_valor = self.inferir_tipo_expresion(ctx) #obtiene el tipo de valor
+                    
+                    # Validador
+                    if tipo_valor and not self.validar_compatibilidad_tipos(tipo_valor, variable.tipo):
+                        print(f"ERROR SEMANTICO: Incompatibilidad de tipos | no se puede asignar {tipo_valor} a {variable.tipo} en {var_nombre}")
+                    else:
+                        # Marcar como inicializada solo si la asignacion es valida
+                        variable.initialized = True #marca la variable
+                        if tipo_valor:
+                            print(f"Asignacion valida: {tipo_valor} -> {variable.tipo} en {var_nombre}")
+                        else:
+                            print(f"Asignacion valida a variable {var_nombre}")
+                else:
+                    print(f"Asignacion valida a variable {var_nombre}")
     
     def exitFactor(self, ctx:compiladorParser.FactorContext):
         
@@ -164,11 +180,20 @@ class Escucha (compiladorListener) :
                 
             else:
                 
-                variable = self.tabla.devolver_ID(var_nombre)  # Marcar la variable como usada 
+                variable = self.tabla.devolver_ID(var_nombre)
                 
-                if variable:
+                if variable and variable.varFunc == "variable":
+
+                    if not variable.initialized: #checkea si esta inicializada
+                        print(f"ERROR SEMANTICO: Variable {var_nombre} usada sin inicializar")
+                        
+                    else:
+                        print(f"uso valido de variable {var_nombre}")
+                    
+                    variable.used = True #marca la variable
+                elif variable and variable.varFunc == "funcion":
+                    print(f"uso valido de funcion {var_nombre}")
                     variable.used = True
-                print(f"uso valido de variable {var_nombre}")
 
     def enterPrototipo(self, ctx:compiladorParser.ProtoContext):
         
@@ -213,35 +238,51 @@ class Escucha (compiladorListener) :
 
     def reporteVariableNoUtilizadas(self):
         
-        print("\n" + "="*50)
-        print("REPORTE DE VARIABLES NO UTILIZADAS")
-        print("="*50)
+        print("REPORTE FINAL DE ANALISIS SEMANTICO")
         
         variables_no_utilizadas = []
+        variables_no_inicializadas = []
         funciones_no_utilizadas = []
         
         for i, contexto in enumerate(self.tabla.contexto): #recorre la tabla de simbolos
             
             for nombre, simbolo in contexto.items():
                 
-                if not simbolo.used:
-                    
-                    if simbolo.varFunc == "variable":
-                        
+                if simbolo.varFunc == "variable":
+                    # Verificar variables no utilizadas
+                    if not simbolo.used:
                         variables_no_utilizadas.append((nombre, simbolo.tipo, i))
+                    
+                    # Verificar variables no inicializadas (declaradas pero nunca inicializadas)
+                    if not simbolo.initialized:
+                        variables_no_inicializadas.append((nombre, simbolo.tipo, i))
                         
-                    elif simbolo.varFunc == "funcion":
-                        
+                elif simbolo.varFunc == "funcion":
+                    if not simbolo.used:
                         funciones_no_utilizadas.append((nombre, simbolo.tipo, i))
         
         
+        # Reporte de variables no inicializadas
+        if variables_no_inicializadas:
+            
+            print(f"\nWARNING: {len(variables_no_inicializadas)} variable(s) no inicializada(s):")
+            
+            for nombre, tipo, contexto_id in variables_no_inicializadas:
+                
+                print(f"  Variable '{nombre}' tipo '{tipo}' (contexto {contexto_id})")
+                
+        else:
+            
+            print("\nTodas las variables fueron inicializadas correctamente")
+        
+        # Reporte de variables
         if variables_no_utilizadas:
             
             print(f"\nWARNING: {len(variables_no_utilizadas)} variable(s) no utilizada(s):")
             
             for nombre, tipo, contexto_id in variables_no_utilizadas:
                 
-                print(f"Variable '{nombre}' tipo '{tipo}' (contexto {contexto_id})")
+                print(f"  Variable '{nombre}' tipo '{tipo}' (contexto {contexto_id})")
                 
         else:
             
@@ -258,11 +299,51 @@ class Escucha (compiladorListener) :
                 
         else:
             
-            print("\nTodas las variables declaradas fueron utilizadas")
+            print("\nTodas las funciones declaradas fueron utilizadas")
+        
 
-        if funciones_no_utilizadas:
+    def validar_compatibilidad_tipos(self, tipo_origen, tipo_destino): 
+        
+        if tipo_origen == tipo_destino: #compatibilidad
+            return True
+            
+        if tipo_origen == "int" and tipo_destino == "double": #int a double (aceptable)
+            return True
+            
+        if tipo_origen == "double" and tipo_destino == "int": #double a int (no aceptable)
+            return False
+            
+        return False #false por default
 
-            print(f"\nWARNING: {len(funciones_no_utilizadas)} funcion(es) no utilizada(s):")
+    def inferir_tipo_expresion(self, ctx):
+        
+        texto = ctx.getText()
+        
+        if any(char.isdigit() for char in texto):
+            # Si contiene punto decimal, es double
+            if '.' in texto:  #el "." es exclusivo del double 
+                return "double"
+            
+            elif any(char.isdigit() for char in texto): #basicamente si no lo tiene es un int
+                return "int"
+        
+        for i in range(ctx.getChildCount()):
+            
+            child = ctx.getChild(i)
+            
+            if hasattr(child, 'getText'):
+                
+                child_text = child.getText()
+                
+                if child_text and child_text.isalpha():
+                    
+                    variable = self.tabla.devolver_ID(child_text)
+                    
+                    if variable and variable.varFunc == "variable":
+                        
+                        return variable.tipo
+        
+        return None #default
 
     def visitErrorNode(self, node: ErrorNode):
         print(" ---> ERROR")
