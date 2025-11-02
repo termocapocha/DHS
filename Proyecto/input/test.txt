@@ -1,0 +1,18 @@
+double calcular(int x, double y, int z);
+
+int algo();
+
+double convertir(double valor);
+
+int a = 10;
+double b = 3.5;
+
+calcular(a, b, a);
+algo();
+convertir(b);
+
+calcular(a);
+calcular(a, b, a, b);
+calcular(b, a, b);
+algo(a);
+convertir();

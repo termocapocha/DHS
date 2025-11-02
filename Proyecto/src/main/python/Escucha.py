@@ -21,7 +21,7 @@ class Escucha (compiladorListener) :
 
     def exitFor(self, ctx:compiladorParser.ForContext):
         print("Fin del parsing")
-        self.reporteVariableNoUtilizadas()
+        self.reporteVariablesNoUtilizadas()
 
     def enterBloque(self, ctx:compiladorParser.BloqueContext): #"{"
         print("  "*self.indent + "Abriendo Bloque")
@@ -146,163 +146,173 @@ class Escucha (compiladorListener) :
     def exitAsignacion(self, ctx:compiladorParser.AsignacionContext):
 
         if ctx.ID():  # checkea si hay una ID
-            var_nombre = ctx.ID().getText()
+            varNombre = ctx.ID().getText()
             
-            if not self.tabla.buscar_ID(var_nombre):
-                print(f"ERROR SEMANTICO: Variable {var_nombre} no declarada (asignacion)")
+            if not self.tabla.buscar_ID(varNombre):
+                print(f"ERROR SEMANTICO: Variable {varNombre} no declarada (asignacion)")
             else:
-                variable = self.tabla.devolver_ID(var_nombre) #obtiene la variable
+                variable = self.tabla.devolver_ID(varNombre) #obtiene la variable
                 
                 if variable and variable.varFunc == "variable":
-                    tipo_valor = self.inferir_tipo_expresion(ctx) #obtiene el tipo de valor
+                    tipoValor = self.inferirTipoExpresion(ctx) #obtiene el tipo de valor
                     
                     # Validador
-                    if tipo_valor and not self.validar_compatibilidad_tipos(tipo_valor, variable.tipo):
-                        print(f"ERROR SEMANTICO: Incompatibilidad de tipos | no se puede asignar {tipo_valor} a {variable.tipo} en {var_nombre}")
+                    if tipoValor and not self.validador(tipoValor, variable.tipo):
+                        print(f"ERROR SEMANTICO: Incompatibilidad de tipos | no se puede asignar {tipoValor} a {variable.tipo} en {varNombre}")
                     else:
                         # Marcar como inicializada solo si la asignacion es valida
                         variable.initialized = True #marca la variable
-                        if tipo_valor:
-                            print(f"Asignacion valida: {tipo_valor} -> {variable.tipo} en {var_nombre}")
+                        if tipoValor:
+                            print(f"Asignacion valida: {tipoValor} -> {variable.tipo} en {varNombre}")
                         else:
-                            print(f"Asignacion valida a variable {var_nombre}")
+                            print(f"Asignacion valida a variable {varNombre}")
                 else:
-                    print(f"Asignacion valida a variable {var_nombre}")
+                    print(f"Asignacion valida a variable {varNombre}")
     
     def exitFactor(self, ctx:compiladorParser.FactorContext):
         
         if ctx.ID():
-            var_nombre = ctx.ID().getText()
+            varNombre = ctx.ID().getText()
             
-            if not self.tabla.buscar_ID(var_nombre):
+            if not self.tabla.buscar_ID(varNombre):
                 
-                print(f"ERROR SEMANTICO: Variable {var_nombre} no declarada (expresion)")
+                print(f"ERROR SEMANTICO: Variable {varNombre} no declarada (expresion)")
                 
             else:
                 
-                variable = self.tabla.devolver_ID(var_nombre)
+                variable = self.tabla.devolver_ID(varNombre)
                 
                 if variable and variable.varFunc == "variable":
 
                     if not variable.initialized: #checkea si esta inicializada
-                        print(f"ERROR SEMANTICO: Variable {var_nombre} usada sin inicializar")
+                        print(f"ERROR SEMANTICO: Variable {varNombre} usada sin inicializar")
                         
                     else:
-                        print(f"uso valido de variable {var_nombre}")
+                        print(f"uso valido de variable {varNombre}")
                     
                     variable.used = True #marca la variable
                 elif variable and variable.varFunc == "funcion":
-                    print(f"uso valido de funcion {var_nombre}")
+                    print(f"uso valido de funcion {varNombre}")
                     variable.used = True
 
-    def enterPrototipo(self, ctx:compiladorParser.ProtoContext):
+    def exitProto(self, ctx:compiladorParser.ProtoContext):
         
         print("  "*self.indent + "PROTOTIPO DE FUNCION")
         
-        if ctx.getChildCount() >= 2: 
-
-            tipo_retorno = ctx.getChild(0).getText()
-            nombre_funcion = ctx.getChild(1).getText()
+        if ctx.tipo() and ctx.ID():
+            tipo_retorno = ctx.tipo().getText()
+            nombre_funcion = ctx.ID().getText()
             
-            print(f"Prototipo: {tipo_retorno} {nombre_funcion}(...)")
+            # Extraer parámetros del prototipo
+            parametros = []
+            if ctx.argumento():
+                parametros = self.extraerParametrosPrototipo(ctx.argumento())
             
-            if self.tabla.buscar_ID(nombre_funcion):  #verifica declaracion
+            print(f"Prototipo: {tipo_retorno} {nombre_funcion}({', '.join([f'{p[0]} {p[1]}' for p in parametros])})")
+            
+            if self.tabla.buscar_ID(nombre_funcion):
                 print(f"ERROR SEMANTICO: Funcion {nombre_funcion} ya declarada")
             else:
-    
-                funcion = FuncionCompilador(nombre_funcion, tipo_retorno, [])
+                funcion = FuncionCompilador(nombre_funcion, tipo_retorno, parametros)
                 self.tabla.agregar_ID(funcion)
-                print(f"Se declaro funcion {nombre_funcion} tipo retorno {tipo_retorno}")
+                print(f"Se declaro funcion {nombre_funcion} tipo retorno {tipo_retorno} con {len(parametros)} parametros")
         else:
-            print(f"DEBUG: Prototipo con {ctx.getChildCount()} hijos: {ctx.getText()}")
+            print(f"DEBUG: Prototipo mal formado: {ctx.getText()}")
 
-    def enterLlamada(self, ctx:compiladorParser.LlamadaContext):
+    def exitLlamada(self, ctx:compiladorParser.LlamadaContext):
 
         print("  "*self.indent + "LLAMADA A FUNCION")
         
         if ctx.ID():
             
-            nombre_funcion = ctx.ID().getText()
+            nombreFuncion = ctx.ID().getText()
             
-            funcion = self.tabla.devolver_ID(nombre_funcion) #si esta declarado
+            funcion = self.tabla.devolver_ID(nombreFuncion) #si esta declarado
             if not funcion:
-                print(f"ERROR SEMANTICO: Funcion {nombre_funcion} no declarada")
+                print(f"ERROR SEMANTICO: Funcion {nombreFuncion} no declarada")
             elif funcion.varFunc != "funcion":
-                print(f"ERROR SEMANTICO: {nombre_funcion} no es una funcion")
+                print(f"ERROR SEMANTICO: {nombreFuncion} no es una funcion")
             else:
-                print(f"Llamada valida a funcion {nombre_funcion}")
-                # Marcar funcion como usada
-                funcion.used = True
+                
+                argumentosLlamada = []
+                if ctx.largumento(): #extrae los argumentos
+                    argumentosLlamada = self.extraerArgumentosLlamada(ctx.largumento())
+                
+ 
+                if self.validarParametrosFuncion(funcion, argumentosLlamada, nombreFuncion):
+                    print(f"Llamada valida a funcion {nombreFuncion}")
+                    # Marcar funcion como usada
+                    funcion.used = True
         else:
             print(f"DEBUG: Llamada sin ID - {ctx.getChildCount()} hijos: {ctx.getText()}")
 
-    def reporteVariableNoUtilizadas(self):
+    def reporteVariablesNoUtilizadas(self):
         
         print("REPORTE FINAL DE ANALISIS SEMANTICO")
         
-        variables_no_utilizadas = []
-        variables_no_inicializadas = []
-        funciones_no_utilizadas = []
+        variablesNoUtilizadas = []
+        variablesNoInicializadas = []
+        funcionesNoUtilizadas = []
         
         for i, contexto in enumerate(self.tabla.contexto): #recorre la tabla de simbolos
             
             for nombre, simbolo in contexto.items():
                 
                 if simbolo.varFunc == "variable":
-                    # Verificar variables no utilizadas
+                    # Verificar variables (no utilizadas)
                     if not simbolo.used:
-                        variables_no_utilizadas.append((nombre, simbolo.tipo, i))
+                        variablesNoUtilizadas.append((nombre, simbolo.tipo, i))
                     
-                    # Verificar variables no inicializadas (declaradas pero nunca inicializadas)
+                    # Verificar variables (declaradas no inicializadas)
                     if not simbolo.initialized:
-                        variables_no_inicializadas.append((nombre, simbolo.tipo, i))
+                        variablesNoInicializadas.append((nombre, simbolo.tipo, i))
                         
                 elif simbolo.varFunc == "funcion":
                     if not simbolo.used:
-                        funciones_no_utilizadas.append((nombre, simbolo.tipo, i))
+                        funcionesNoUtilizadas.append((nombre, simbolo.tipo, i))
         
         
         # Reporte de variables no inicializadas
-        if variables_no_inicializadas:
+        if variablesNoInicializadas:
             
-            print(f"\nWARNING: {len(variables_no_inicializadas)} variable(s) no inicializada(s):")
+            print(f"\nWARNING: {len(variablesNoInicializadas)} variable(s) no inicializada(s):")
             
-            for nombre, tipo, contexto_id in variables_no_inicializadas:
+            for nombre, tipo, contextoId in variablesNoInicializadas:
                 
-                print(f"  Variable '{nombre}' tipo '{tipo}' (contexto {contexto_id})")
+                print(f"  Variable '{nombre}' tipo '{tipo}' (contexto {contextoId})")
                 
         else:
             
             print("\nTodas las variables fueron inicializadas correctamente")
         
         # Reporte de variables
-        if variables_no_utilizadas:
+        if variablesNoUtilizadas:
             
-            print(f"\nWARNING: {len(variables_no_utilizadas)} variable(s) no utilizada(s):")
+            print(f"\nWARNING: {len(variablesNoUtilizadas)} variable(s) no utilizada(s):")
             
-            for nombre, tipo, contexto_id in variables_no_utilizadas:
+            for nombre, tipo, contextoId in variablesNoUtilizadas:
                 
-                print(f"  Variable '{nombre}' tipo '{tipo}' (contexto {contexto_id})")
+                print(f"  Variable '{nombre}' tipo '{tipo}' (contexto {contextoId})")
                 
         else:
             
             print("\nTodas las variables declaradas fueron utilizadas")
         
          
-        if funciones_no_utilizadas:
+        if funcionesNoUtilizadas:
             
-            print(f"\nWARNING: {len(funciones_no_utilizadas)} funcion(es) no utilizada(s):")
+            print(f"\nWARNING: {len(funcionesNoUtilizadas)} funcion(es) no utilizada(s):")
             
-            for nombre, tipo, contexto_id in funciones_no_utilizadas:
+            for nombre, tipo, contextoId in funcionesNoUtilizadas:
                 
-                print(f"Funcion '{nombre}' tipo '{tipo}' (contexto {contexto_id})")
+                print(f"Funcion '{nombre}' tipo '{tipo}' (contexto {contextoId})")
                 
         else:
             
             print("\nTodas las funciones declaradas fueron utilizadas")
         
 
-    def validar_compatibilidad_tipos(self, tipo_origen, tipo_destino): 
+    def validador(self, tipo_origen, tipo_destino): 
         
         if tipo_origen == tipo_destino: #compatibilidad
             return True
@@ -315,7 +325,7 @@ class Escucha (compiladorListener) :
             
         return False #false por default
 
-    def inferir_tipo_expresion(self, ctx):
+    def inferirTipoExpresion(self, ctx):
         
         texto = ctx.getText()
         
@@ -344,6 +354,87 @@ class Escucha (compiladorListener) :
                         return variable.tipo
         
         return None #default
+
+    def extraerParametrosPrototipo(self, ctxArgumento):
+        
+        parametros = []
+        
+        # Primer parametro
+        if ctxArgumento.tipo() and ctxArgumento.ID():
+            tipo = ctxArgumento.tipo().getText()
+            nombre = ctxArgumento.ID().getText()
+            parametros.append((tipo, nombre))
+        
+        # subsecuentes
+        if ctxArgumento.masArgumento():
+            parametros.extend(self.extraerMasArgumentos(ctxArgumento.masArgumento()))
+        
+        return parametros
+    
+    def extraerMasArgumentos(self, ctxMasArgumento):
+        
+        parametros = []
+        
+        if ctxMasArgumento.tipo() and ctxMasArgumento.ID():
+            tipo = ctxMasArgumento.tipo().getText()
+            nombre = ctxMasArgumento.ID().getText()
+            parametros.append((tipo, nombre))
+        
+        if ctxMasArgumento.masArgumento():
+            parametros.extend(self.extraerMasArgumentos(ctxMasArgumento.masArgumento()))
+        
+        return parametros
+    
+    def extraerArgumentosLlamada(self, ctxLargumento):
+        
+        argumentos = []
+        
+        # Primer argumento
+        if ctxLargumento.opal():
+            tipoArg = self.inferirTipoExpresion(ctxLargumento.opal())
+            argumentos.append(tipoArg)
+        
+        # subsecuentes
+        if ctxLargumento.masLargumento():
+            argumentos.extend(self.extraerMasLargumentos(ctxLargumento.masLargumento()))
+        
+        return argumentos
+    
+    def extraerMasLargumentos(self, ctxMasLargumento):
+        
+        argumentos = []
+        
+        if ctxMasLargumento.opal():
+            tipoArg = self.inferirTipoExpresion(ctxMasLargumento.opal())
+            argumentos.append(tipoArg)
+        
+        if ctxMasLargumento.masLargumento():
+            argumentos.extend(self.extraerMasLargumentos(ctxMasLargumento.masLargumento()))
+        
+        return argumentos
+    
+    def validarParametrosFuncion(self, funcion, argumentosLlamada, nombreFuncion):
+        
+        parametrosEsperados = funcion.parametros
+        
+        # Verificar cantidad
+        if len(parametrosEsperados) != len(argumentosLlamada):
+            print(f"ERROR SEMANTICO: Funcion {nombreFuncion} espera {len(parametrosEsperados)} parametros, pero se pasaron {len(argumentosLlamada)}")
+            return False
+        
+        # Verificar tipos
+        for i, (tipoEsperado, _) in enumerate(parametrosEsperados):
+            tipoArgumento = argumentosLlamada[i]
+            
+            if tipoArgumento is None:
+                print(f"ERROR SEMANTICO: No se pudo determinar el tipo del argumento {i+1} en llamada a {nombreFuncion}")
+                return False
+            
+            if not self.validador(tipoArgumento, tipoEsperado):
+                print(f"ERROR SEMANTICO: Parametro {i+1} de {nombreFuncion}: se esperaba {tipoEsperado}, se paso {tipoArgumento}")
+                return False
+        
+        return True
 
     def visitErrorNode(self, node: ErrorNode):
         print(" ---> ERROR")

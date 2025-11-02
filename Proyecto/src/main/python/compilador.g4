@@ -21,6 +21,7 @@ LIT : 'true' | 'false' ;
 
 
 NUMERO : DIGITO+ ;
+DECIMAL : DIGITO+ '.' DIGITO+ ;
 
 INT : 'int' ;
 DOUBLE : 'double' ;
@@ -145,6 +146,7 @@ t : MULT factor t
   ;
 
 factor : NUMERO
+       | DECIMAL
        | ID
        | PA exp PC
        | llamada
