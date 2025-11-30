@@ -1,60 +1,94 @@
 class TablaSimbolos:
 
-    tabla_unica = None
+    _tablaUnica = None
 
     def __new__(cls):
 
-        if cls.tabla_unica is None:
-           cls.tabla_unica = super(TablaSimbolos, cls).__new__(cls)
-        return cls.tabla_unica
+        if cls._tablaUnica is None:
+           cls._tablaUnica = super(TablaSimbolos, cls).__new__(cls)
+           cls._tablaUnica._inicializar()
+        return cls._tablaUnica
 
-    # Cada diccionario almacena los identificadores de ese contexto
-    contexto = [dict()]
+    def _inicializar(self):
+        # Cada diccionario almacena los identificadores de ese contexto
+        self._contexto = [dict()]
 
-    def agregar_contexto(self):  #cuando se entra a un bloque
+    def agregarContexto(self):  #cuando se entra a un bloque
 
-        self.contexto.append(dict())
+        self._contexto.append(dict())
 
-    def quitar_contexto(self):#cuando se sale de un bloque
+    def quitarContexto(self):#cuando se sale de un bloque
 
-        self.contexto.pop()
+        self._contexto.pop()
 
-    def agregar_ID(self, ID): #agrega un ID al contexto actual
+    def agregarId(self, ID): #agrega un ID al contexto actual
         
-        self.contexto[-1][ID.nombre] = ID
+        self._contexto[-1][ID.getNombre()] = ID
 
-    def buscar_ID(self, key_id): #busca un ID especifico los contexto
+    def buscarId(self, keyId): #busca un ID especifico los contexto
       
-        for contexto in self.contexto:
+        # Busca de afuera hacia adentro (más global a más local)
+        for contexto in self._contexto:
             
-            if key_id in contexto:
+            if keyId in contexto:
                 
                 return True         #si todo sale bien deveria delvoler true
             
         return False
 
-    def devolver_ID(self, key_id): #
+    def devolverID(self, keyId): #
   
-        for contexto in self.contexto:
+        # Busca de afuera hacia adentro (más global a más local)
+        for contexto in self._contexto:
             
-            if key_id in contexto:
+            if keyId in contexto:
                 
-                return contexto[key_id]  
+                return contexto[keyId]  
                   
         return False
+
+    def getNumeroContextos(self):
+        return len(self._contexto)
+        
+    def getContextoActual(self):
+        """Retorna una copia del contexto actual para inspección"""
+        return dict(self._contexto[-1])
+        
+    def iterarContextos(self):
+        """Generador que permite iterar sobre los contextos de manera segura"""
+        for contexto in self._contexto:
+            yield dict(contexto)  # Retorna copias para evitar modificaciones externas
 
 
 class ID:
     
     def __init__(self, nombre, tipo):
         
-        self.nombre = nombre        # Nombre del identificador
-        self.tipo = tipo           # Tipo de dato
-        self.varFunc = "variable" # Indica si es "variable" o "funcion"
+        self._nombre = nombre        # Nombre del identificador (privado)
+        self._tipo = tipo           # Tipo de dato (privado)
+        self._varFunc = "variable" # Indica si es "variable" o "funcion" (privado)
+
+    def getNombre(self):
+        return self._nombre
+    
+    def setNombre(self, nombre):
+        self._nombre = nombre
+        
+    def getTipo(self):
+        return self._tipo
+        
+    def setTipo(self, tipo):
+        self._tipo = tipo
+        
+    def getVarFunc(self):
+        return self._varFunc
+        
+    def setVarFunc(self, varFunc):
+        self._varFunc = varFunc
 
     def toString(self): #ID a string 
 
-        return f'(name->{self.nombre},tipo->{self.tipo},varFun->{self.varFunc})'
+        return f'(name->{self._nombre},tipo->{self._tipo},varFun->{self._varFunc})'
 
 
 class VariableCompilador(ID): #repesenta una variable
@@ -66,4 +100,4 @@ class FuncionCompilador(ID): #representa una funcion
     def __init__(self, nombre, tipo, parametros): #constructor (de la funcion)
 
         super().__init__(nombre, tipo) 
-        self.varFunc = "funcion"      
+        self.setVarFunc("funcion")      

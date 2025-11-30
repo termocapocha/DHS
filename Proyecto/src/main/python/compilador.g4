@@ -36,15 +36,7 @@ ID : (LETRA | '_')(LETRA | DIGITO | '_')* ;
 WS : [ \n\r\t] -> skip ;
 OTRO : . ;
 
-// s : ID     {print("ID ->" + $ID.text + "<--") }         s
-//   | NUMERO {print("NUMERO ->" + $NUMERO.text + "<--") } s
-//   | OTRO   {print("Otro ->" + $OTRO.text + "<--") }     s
-//   | EOF
-//   ;
 
-// s : PA s PC s
-//   |
-//   ;
 
 for : instrucciones EOF ; //entrada
 
@@ -67,17 +59,18 @@ instruccion : asignacion PYC
 
 bloque : LLA instrucciones LLC ;
 
-iwhile : WHILE PA (opal|comparator|LIT) PC (instruccion|bloque)
-       ;
+iwhile : WHILE PA condicion PC instruccion;
 
-iif : IF PA (opal|comparator|LIT) PC instruccion ielse ;
+iif : IF PA condicion PC instruccion ielse ;
+
+condicion : opal | comparator | LIT ;
 
 ielse : ELSE instruccion
       |
       ;
 
-ifor :FOR PA (inicializacion|) PYC (comparator|) PYC (iincdec|)  PC (bloque | instruccion)
-     ;  //en teoria, todos los for
+ifor :FOR PA (asignacion | declaracion |) PYC (comparator|) PYC (iincdec|)  PC instruccion
+     ;
      
 declaracion : tipo ID inic listavar
             ;
@@ -94,20 +87,20 @@ tipo : INT
      | DOUBLE
      ;
 
-inicializacion :ID  //new
-               | asignacion
-               | declaracion
-               ;
+
 
 iincdec : ID INCDEC //new
         | INCDEC ID
         ;
 
-comparator : ID COMP ID //new
-            | ID COMP NUMERO 
-            | NUMERO COMP ID
-            | NUMERO COMP NUMERO
-     ;
+comparator : opal COMP opal;
+
+/*
+     ID COMP ID //new
+     | ID COMP NUMERO 
+     | NUMERO COMP ID
+     | NUMERO COMP NUMERO
+*/ 
 
 asignacion : ID ASIG opal ;
 
@@ -115,15 +108,14 @@ funcion: tipo ID PA argumento PC bloque; //int funcion(int x, double y,..){}
 
 proto: tipo ID PA argumento PC PYC ; //int funcion(int x, double y,...);
 
-llamada: ID PA largumento PC ; //funcion(x,y,...);
+llamada: ID PA argumentosLlamada PC ; //funcion(x,y,...);
 
-argumento: tipo ID masArgumento|;  //el vacio es por si llego a tener una llamada "imprimir()"
+argumento: tipo ID listaParametros|;  //el vacio es por si llego a tener una llamada "imprimir()"
            
-masArgumento : COMA tipo ID masArgumento |; //fijar si se puede hacer un merge con listavar
+listaParametros : COMA tipo ID listaParametros |; //mod
+listaArgumentos : COMA opal listaArgumentos |;
               
-largumento :  opal masLargumento|;
-
-masLargumento : COMA  opal masLargumento |;
+argumentosLlamada :  opal listaArgumentos|;
 
 ireturn : RETURN (opal|LIT|comparator|) ;
 

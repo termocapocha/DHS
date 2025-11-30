@@ -39,6 +39,11 @@ class compiladorVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by compiladorParser#condicion.
+    def visitCondicion(self, ctx:compiladorParser.CondicionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by compiladorParser#ielse.
     def visitIelse(self, ctx:compiladorParser.IelseContext):
         return self.visitChildren(ctx)
@@ -66,11 +71,6 @@ class compiladorVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by compiladorParser#tipo.
     def visitTipo(self, ctx:compiladorParser.TipoContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by compiladorParser#inicializacion.
-    def visitInicializacion(self, ctx:compiladorParser.InicializacionContext):
         return self.visitChildren(ctx)
 
 
@@ -109,18 +109,18 @@ class compiladorVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by compiladorParser#masArgumento.
-    def visitMasArgumento(self, ctx:compiladorParser.MasArgumentoContext):
+    # Visit a parse tree produced by compiladorParser#listaParametros.
+    def visitListaParametros(self, ctx:compiladorParser.ListaParametrosContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by compiladorParser#largumento.
-    def visitLargumento(self, ctx:compiladorParser.LargumentoContext):
+    # Visit a parse tree produced by compiladorParser#listaArgumentos.
+    def visitListaArgumentos(self, ctx:compiladorParser.ListaArgumentosContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by compiladorParser#masLargumento.
-    def visitMasLargumento(self, ctx:compiladorParser.MasLargumentoContext):
+    # Visit a parse tree produced by compiladorParser#argumentosLlamada.
+    def visitArgumentosLlamada(self, ctx:compiladorParser.ArgumentosLlamadaContext):
         return self.visitChildren(ctx)
 
 
