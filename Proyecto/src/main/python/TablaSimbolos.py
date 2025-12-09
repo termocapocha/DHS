@@ -12,6 +12,10 @@ class TablaSimbolos:
     def _inicializar(self):
         # Cada diccionario almacena los identificadores de ese contexto
         self._contexto = [dict()]
+        
+    def reiniciar(self):
+        # Metodo para reiniciar la tabla de símbolos
+        self._inicializar()
 
     def agregarContexto(self):  #cuando se entra a un bloque
 
@@ -27,18 +31,18 @@ class TablaSimbolos:
 
     def buscarId(self, keyId): #busca un ID especifico los contexto
       
-        # Busca de afuera hacia adentro (más global a más local)
+        # Busca de afuera hacia adentro (mas global a mas local)
         for contexto in self._contexto:
             
             if keyId in contexto:
                 
-                return True         #si todo sale bien deveria delvoler true
+                return True         #si todo sale bien deberia delvoler true
             
         return False
 
     def devolverID(self, keyId): #
   
-        # Busca de afuera hacia adentro (más global a más local)
+        # Busca de afuera hacia adentro (mas global a mas local)
         for contexto in self._contexto:
             
             if keyId in contexto:
@@ -51,13 +55,62 @@ class TablaSimbolos:
         return len(self._contexto)
         
     def getContextoActual(self):
-        """Retorna una copia del contexto actual para inspección"""
+        #Retorna una copia del contexto actual para inspeccion
         return dict(self._contexto[-1])
         
     def iterarContextos(self):
-        """Generador que permite iterar sobre los contextos de manera segura"""
+        #Generador que permite iterar sobre los contextos de manera segura
         for contexto in self._contexto:
             yield dict(contexto)  # Retorna copias para evitar modificaciones externas
+            
+    def marcarUtilizada(self, keyId):
+        #Marca una variable/funcion como utilizada
+        for contexto in self._contexto:
+            
+            if keyId in contexto:
+                contexto[keyId].marcarUtilizada()
+                return True
+            
+        return False
+        
+    def obtenerNoUtilizadas(self):
+        #Retorna una lista de variables/funciones declaradas pero no utilizadas
+        noUtilizadas = []
+        for i, contexto in enumerate(self._contexto):
+            
+            for nombre, simbolo in contexto.items():
+                
+                if not simbolo.getUtilizada():
+                    
+                    noUtilizadas.append({
+                        'nombre': nombre,
+                        'tipo': simbolo.getTipo(),
+                        'varFunc': simbolo.getVarFunc(),
+                        'contexto': i
+                    })
+                    
+        return noUtilizadas
+        
+    def exportarTabla(self, archivo):
+        #Exporta la tabla de simbolos completa a un archivo
+        archivo.write("CONTEXTOS DE LA TABLA DE SIMBOLOS:\n\n")
+        
+        for i, contexto in enumerate(self._contexto):
+            archivo.write(f"CONTEXTO {i}:\n")
+            if contexto:
+                for nombre, item in contexto.items():
+                    # Detectar si el ID representa una funcion o una variable
+                    try:
+                        if item.getVarFunc() == "funcion":
+                            archivo.write(f"  - {nombre}: funcion {item.getTipo()}\n")
+                        else:
+                            archivo.write(f"  - {nombre}: variable {item.getTipo()}\n")
+                    except Exception:
+                        # Fallback por seguridad
+                        archivo.write(f"  - {nombre}: {item.getTipo()}\n")
+            else:
+                archivo.write("  (vacío)\n")
+            archivo.write("\n")
 
 
 class ID:
@@ -67,6 +120,7 @@ class ID:
         self._nombre = nombre        # Nombre del identificador (privado)
         self._tipo = tipo           # Tipo de dato (privado)
         self._varFunc = "variable" # Indica si es "variable" o "funcion" (privado)
+        self._utilizada = False    # Indica si ha sido utilizada (privado)
 
     def getNombre(self):
         return self._nombre
@@ -85,10 +139,19 @@ class ID:
         
     def setVarFunc(self, varFunc):
         self._varFunc = varFunc
+        
+    def getUtilizada(self):
+        return self._utilizada
+        
+    def setUtilizada(self, utilizada):
+        self._utilizada = utilizada
+        
+    def marcarUtilizada(self):
+        self._utilizada = True
 
     def toString(self): #ID a string 
 
-        return f'(name->{self._nombre},tipo->{self._tipo},varFun->{self._varFunc})'
+        return f'(name->{self._nombre},tipo->{self._tipo},varFun->{self._varFunc},utilizada->{self._utilizada})'
 
 
 class VariableCompilador(ID): #repesenta una variable

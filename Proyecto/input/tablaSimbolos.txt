@@ -1,0 +1,11 @@
+CONTEXTOS DE LA TABLA DE SIMBOLOS:
+
+CONTEXTO 0:
+  - b: variable int
+  - a: variable int
+  - suma: funcion int
+  - y: variable int
+  - total: variable int
+  - z: variable int
+  - x: variable int
+

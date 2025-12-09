@@ -1,7 +1,6 @@
 int suma(int a, int b);
 
-int x=0,y,z=5,total;
-y=2;
+int x=1,y,z=5,total,y=2;
 
 total=(x*y)/z;
 

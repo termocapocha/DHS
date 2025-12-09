@@ -13,8 +13,10 @@ class Escucha (compiladorListener) :
     tabla = None        # Tabla de simbolos    
     
     def enterFor(self, ctx:compiladorParser.ForContext):
- 
-        print("Comienza el parsing")
+        # Solo imprime una vez y previene la re-ejecucion
+        if not hasattr(self, '_parsing_started'):
+            print("Comienza el parsing")
+            self._parsing_started = True
         
         if self.tabla is None:
             
@@ -104,11 +106,11 @@ class Escucha (compiladorListener) :
         print("ListaVar(%d) Cant. hijos  = %d" % (self.profundidad, ctx.getChildCount()))
         self.profundidad -= 1
         if ctx.getChildCount() == 4 :
-            # Obtener el nombre de la variable (hijo en posición 1)
+            # obtiene el nombre de la variable (hijo en posicion 1)
             varNombre = ctx.getChild(1).getText()
             print("      hoja ID --> %s" % varNombre)
             
-            # Obtener el tipo desde el contexto padre (declaracion)
+            # obtiene el tipo desde el contexto padre (la declaracion)
             # Buscamos el contexto de declaracion que contiene el tipo
             parent_ctx = ctx
             while parent_ctx and not isinstance(parent_ctx, compiladorParser.DeclaracionContext):
@@ -144,6 +146,7 @@ class Escucha (compiladorListener) :
             if not self.tabla.buscarId(varNombre):
                 print(f"ERROR SEMANTICO: Variable {varNombre} no declarada")
             else:
+                self.tabla.marcarUtilizada(varNombre)  # Marcar como utilizada
                 print(f"Asignacion valida a variable {varNombre}")
     
     def exitFactor(self, ctx:compiladorParser.FactorContext):
@@ -154,6 +157,7 @@ class Escucha (compiladorListener) :
             if not self.tabla.buscarId(varNombre):
                 print(f"ERROR SEMANTICO: Variable {varNombre} no declarada")
             else:
+                self.tabla.marcarUtilizada(varNombre)  # Marcar como utilizada
                 print(f"Uso valido de variable {varNombre}")
 
     def exitProto(self, ctx:compiladorParser.ProtoContext):
@@ -173,7 +177,7 @@ class Escucha (compiladorListener) :
                 self.tabla.agregarId(funcion)
                 print(f"Se declaro funcion {nombreFuncion}")
         else:
-            print(f"DEBUG: Prototipo mal formado: {ctx.getText()}")
+            print(f"ERROR: Prototipo mal formado")
 
     def exitFuncion(self, ctx:compiladorParser.FuncionContext):
         print("  "*self.indent + "DEFINICION DE FUNCION")
@@ -184,7 +188,7 @@ class Escucha (compiladorListener) :
             
             print(f"Definicion: {tipoRetorno} {nombreFuncion}(...)")
             
-            # Verificar si ya existe como prototipo o redefinición
+            # Verificar si ya existe como prototipo o redefinicion
             funcionExistente = self.tabla.devolverID(nombreFuncion)
             
             if funcionExistente and funcionExistente.getVarFunc() == "funcion":
@@ -238,7 +242,7 @@ class Escucha (compiladorListener) :
                 
             else:
                 
-                # Crear y agregar el parametro a la tabla
+                # Crear y agrega el parametro a la tabla
                 parametro = VariableCompilador(nombreParam, tipoParam)
                 self.tabla.agregarId(parametro)
                 print(f"Se declaro parametro {nombreParam} de tipo {tipoParam}")
@@ -258,14 +262,25 @@ class Escucha (compiladorListener) :
             elif funcion.getVarFunc() != "funcion":
                 print(f"ERROR SEMANTICO: {nombreFuncion} no es una funcion")
             else:
+                self.tabla.marcarUtilizada(nombreFuncion)  # Marcar funcion como utilizada
                 print(f"Llamada valida a funcion {nombreFuncion}")
         else:
-            print(f"DEBUG: Llamada sin ID")
+            print(f"ERROR: Llamada mal formada")
 
     def reporteVariablesNoUtilizadas(self):
 
         print("\n=== REPORTE FINAL ===")
         print("Analisis completado exitosamente")
+        
+        # Detectar variables/funciones no utilizadas
+        noUtilizadas = self.tabla.obtenerNoUtilizadas()
+        
+        if noUtilizadas:
+            print("\n=== VARIABLES/FUNCIONES DECLARADAS PERO NO UTILIZADAS ===")
+            for item in noUtilizadas:
+                print(f"- {item['nombre']} ({item['tipo']}) - {item['varFunc']} en contexto {item['contexto']}")
+        else:
+            print("\n=== TODAS LAS VARIABLES/FUNCIONES FUERON UTILIZADAS ===")
         
 
     def visitErrorNode(self, node: ErrorNode):
