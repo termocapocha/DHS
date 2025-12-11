@@ -14,7 +14,7 @@ from TablaSimbolos import TablaSimbolos
 #     antlr4 -Dlanguage=Python3 -visitor compilador.g4 -o .
 
 def main(argv):
-    archivo = "input/programa.txt"
+    archivo = "input/if.txt"
     # archivo = "input/simple.txt"
     if len(argv) > 1:
         archivo = argv[1]
@@ -38,7 +38,7 @@ def main(argv):
         stream = CommonTokenStream(lexer)
         parser = compiladorParser(stream)
         parser.addParseListener(escucha)
-        tree = parser.for_()
+        tree = parser.programa()
         print(escucha)
     except FileNotFoundError as e:
         parseError = f"FileNotFoundError: {e}"
@@ -55,8 +55,8 @@ def main(argv):
 
     # 1. Exportar tabla de simbolos (archivo unico, actualizado)
     # Escribe la tabla en la misma carpeta que el archivo de entrada ()
-    import os as _os
-    tablaFile = _os.path.join(_os.path.dirname(archivo), "tablaSimbolos.txt")
+    import os as _os    #esto solo es para hacerlo dinamico
+    tablaFile = _os.path.join(_os.path.dirname(archivo), "tablaSimbolos.txt") 
     from datetime import datetime
     with open(tablaFile, 'w', encoding='utf-8') as f:
         if parseError:

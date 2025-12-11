@@ -126,7 +126,7 @@ class compiladorParser ( Parser ):
                       "IF", "ELSE", "FOR", "WHILE", "RETURN", "ID", "WS", 
                       "OTRO" ]
 
-    RULE_for = 0
+    RULE_programa = 0
     RULE_instrucciones = 1
     RULE_instruccion = 2
     RULE_bloque = 3
@@ -157,12 +157,12 @@ class compiladorParser ( Parser ):
     RULE_t = 28
     RULE_factor = 29
 
-    ruleNames =  [ "for", "instrucciones", "instruccion", "bloque", "iwhile", 
-                   "iif", "condicion", "ielse", "ifor", "declaracion", "listavar", 
-                   "inic", "tipo", "iincdec", "comparator", "asignacion", 
-                   "funcion", "proto", "llamada", "argumento", "listaParametros", 
-                   "listaArgumentos", "argumentosLlamada", "ireturn", "opal", 
-                   "exp", "e", "term", "t", "factor" ]
+    ruleNames =  [ "programa", "instrucciones", "instruccion", "bloque", 
+                   "iwhile", "iif", "condicion", "ielse", "ifor", "declaracion", 
+                   "listavar", "inic", "tipo", "iincdec", "comparator", 
+                   "asignacion", "funcion", "proto", "llamada", "argumento", 
+                   "listaParametros", "listaArgumentos", "argumentosLlamada", 
+                   "ireturn", "opal", "exp", "e", "term", "t", "factor" ]
 
     EOF = Token.EOF
     PA=1
@@ -202,7 +202,7 @@ class compiladorParser ( Parser ):
 
 
 
-    class ForContext(ParserRuleContext):
+    class ProgramaContext(ParserRuleContext):
         __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
@@ -217,29 +217,29 @@ class compiladorParser ( Parser ):
             return self.getToken(compiladorParser.EOF, 0)
 
         def getRuleIndex(self):
-            return compiladorParser.RULE_for
+            return compiladorParser.RULE_programa
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFor" ):
-                listener.enterFor(self)
+            if hasattr( listener, "enterPrograma" ):
+                listener.enterPrograma(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFor" ):
-                listener.exitFor(self)
+            if hasattr( listener, "exitPrograma" ):
+                listener.exitPrograma(self)
 
         def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitFor" ):
-                return visitor.visitFor(self)
+            if hasattr( visitor, "visitPrograma" ):
+                return visitor.visitPrograma(self)
             else:
                 return visitor.visitChildren(self)
 
 
 
 
-    def for_(self):
+    def programa(self):
 
-        localctx = compiladorParser.ForContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 0, self.RULE_for)
+        localctx = compiladorParser.ProgramaContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 0, self.RULE_programa)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 60

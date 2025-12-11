@@ -12,7 +12,7 @@ class Escucha (compiladorListener) :
     numNodos = 0        
     tabla = None        # Tabla de simbolos    
     
-    def enterFor(self, ctx:compiladorParser.ForContext):
+    def enterPrograma(self, ctx:compiladorParser.ProgramaContext):
         # Solo imprime una vez y previene la re-ejecucion
         if not hasattr(self, '_parsing_started'):
             print("Comienza el parsing")
@@ -22,7 +22,7 @@ class Escucha (compiladorListener) :
             
             self.tabla = TablaSimbolos()  #aca se inicializa la tabla
 
-    def exitFor(self, ctx:compiladorParser.ForContext):
+    def exitPrograma(self, ctx:compiladorParser.ProgramaContext):
 
         print("Fin del parsing")
         self.reporteVariablesNoUtilizadas()
@@ -55,7 +55,7 @@ class Escucha (compiladorListener) :
             
             print("Contexto vacio")
             
-        self.tabla.quitarContexto()  # eliminador de contexto
+        #self.tabla.quitarContexto()  # eliminador de contexto
         
         print(f"Contextos restantes: {self.tabla.getNumeroContextos()}")
 
@@ -129,9 +129,6 @@ class Escucha (compiladorListener) :
                     print(f"Se declaro variable {varNombre} de tipo {tipoVar}")
                     self.declaracion += 1
 
-    # def visitTerminal(self, node: TerminalNode):
-    #     print(" ---> Token: " + node.getText())
-        # self.numTokens += 1
      
     def __str__(self):
 

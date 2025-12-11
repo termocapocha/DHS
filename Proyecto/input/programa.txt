@@ -6,6 +6,7 @@ total=(x*y)/z;
 
 if (x < 10) {
     total--;
+    x=11;
 }else{
     total++;
 }

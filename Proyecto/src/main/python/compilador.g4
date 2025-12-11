@@ -38,7 +38,7 @@ OTRO : . ;
 
 
 
-for : instrucciones EOF ; //entrada
+programa : instrucciones EOF ; //entrada
 
 instrucciones : instruccion instrucciones
               |

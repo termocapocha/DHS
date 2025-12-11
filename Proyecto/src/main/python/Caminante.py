@@ -10,7 +10,7 @@ class Caminante (compiladorVisitor):
         self.contadorTemporales += 1
         return temp
 
-    def visitFor(self, ctx:compiladorParser.ForContext):
+    def visitPrograma(self, ctx:compiladorParser.ProgramaContext):
         if ctx.instrucciones():
             return self.visit(ctx.instrucciones())
         return None

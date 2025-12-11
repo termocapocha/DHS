@@ -9,11 +9,11 @@
             "type": "antlr-debug",
             "request": "launch",
             // Archivo con la gramatica
-            "grammar": "${file}",
+            "grammar": "${workspaceFolder}/src/main/python/compilador.g4",
             // Archivo a parsear
-            "input": "input/for.txt",
+            "input": "input/if.txt",  //se cambia cada vez
             // Simbolo inicial
-            "startRule": "for", //entrada
+            "startRule": "programa", //entrada
             // Muestra Arbol Sintactico
             "printParseTree": true,
             "visualParseTree": true
