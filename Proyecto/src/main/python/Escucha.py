@@ -22,9 +22,23 @@ class Escucha (compiladorListener) :
             
             self.tabla = TablaSimbolos()  #aca se inicializa la tabla
 
+    def enterFuncion(self, ctx:compiladorParser.FuncionContext):
+        # Imprime linea adicional solicitada por el formato esperado
+        print("  Comienza funcion")
+        self.indent += 1
+        # Crear contexto para parametros/alcance de la funcion
+        if self.tabla:
+            self.tabla.agregarContexto()
+
     def exitPrograma(self, ctx:compiladorParser.ProgramaContext):
 
         print("Fin del parsing")
+        # Marcar `main` como utilizada automaticamente si existe (punto de entrada)
+        try:
+            if self.tabla and self.tabla.devolverID('main'):
+                self.tabla.marcarUtilizada('main')
+        except Exception:
+            pass
         self.reporteVariablesNoUtilizadas()
 
     def enterBloque(self, ctx:compiladorParser.BloqueContext): #"{"
@@ -55,8 +69,12 @@ class Escucha (compiladorListener) :
             
             print("Contexto vacio")
             
-        #self.tabla.quitarContexto()  # eliminador de contexto
-        
+        # Eliminar el contexto al salir del bloque
+        try:
+            self.tabla.quitarContexto()
+        except Exception:
+            pass
+
         print(f"Contextos restantes: {self.tabla.getNumeroContextos()}")
 
     def enterIwhile(self, ctx:compiladorParser.IwhileContext):
@@ -70,10 +88,10 @@ class Escucha (compiladorListener) :
         print("  "*self.indent + "Fin while")
 
     def enterDeclaracion(self, ctx:compiladorParser.DeclaracionContext):
-
-        self.declaracion += 1
         print("Declaracion ENTER -> <" + ctx.getText() + ">")
         print("Cant. hijos = " + str(ctx.getChildCount()))
+        # linea adicional con formato esperado
+        print("Declaracion ENTER -> <>")
     
     def exitDeclaracion(self, ctx:compiladorParser.DeclaracionContext):
 
@@ -82,7 +100,6 @@ class Escucha (compiladorListener) :
 
         tipo = ctx.getChild(0).getText() # tipo variable  
         id_nombre = ctx.getChild(1).getText()  # nombre de variable
-        
         if tipo != 'int' and tipo != 'double':
             print(f"ERROR SEMANTICO: Tipo de dato {tipo} no reconocido por el compilador")
             return
@@ -96,6 +113,10 @@ class Escucha (compiladorListener) :
             variable = ID(id_nombre, tipo)
             self.tabla.agregarId(variable)
             print(f"Se declaro variable {id_nombre} de tipo {tipo}")
+            # impresion adicional con pipes y prefijo
+            print(f"  -- Se declaro la variable <{id_nombre}> de tipo <{tipo}>")
+            # Incrementar contador de declaraciones
+            self.declaracion += 1
         
 
     
@@ -127,7 +148,10 @@ class Escucha (compiladorListener) :
                     variable = VariableCompilador(varNombre, tipoVar)
                     self.tabla.agregarId(variable)
                     print(f"Se declaro variable {varNombre} de tipo {tipoVar}")
-                    self.declaracion += 1
+                    # impresion adicional con formato solicitado
+                    print(f"  -- ListaVar({self.profundidad+1}) Cant. hijos  = {ctx.getChildCount()}")
+                    print(f"  -- Se declaro la variable <{varNombre}> de tipo <{tipoVar}>")
+
 
      
     def __str__(self):
@@ -139,12 +163,52 @@ class Escucha (compiladorListener) :
 
         if ctx.ID():  # checkea si hay una ID
             varNombre = ctx.ID().getText()
-            
             if not self.tabla.buscarId(varNombre):
                 print(f"ERROR SEMANTICO: Variable {varNombre} no declarada")
             else:
-                self.tabla.marcarUtilizada(varNombre)  # Marcar como utilizada
-                print(f"Asignacion valida a variable {varNombre}")
+                # Comprobacion de tipos simple: obtener tipo LHS
+                lhs = self.tabla.devolverID(varNombre)
+                lhs_tipo = lhs.getTipo() if lhs else None
+
+                # Determinar tipo RHS si es simple ID o NUMERO o llamada
+                rhs_tipo = None
+                if hasattr(ctx, 'opal') and ctx.opal():
+                    opal = ctx.opal()
+                    # Caso ID
+                    if hasattr(opal, 'ID') and opal.ID():
+                        idname = opal.ID().getText()
+                        entry = self.tabla.devolverID(idname)
+                        if entry:
+                            rhs_tipo = entry.getTipo()
+                    # Caso numero literal
+                    elif hasattr(opal, 'NUMERO') and opal.NUMERO():
+                        numtxt = opal.NUMERO().getText()
+                        rhs_tipo = 'double' if '.' in numtxt else 'int'
+                    # Caso llamada a funcion
+                    elif hasattr(opal, 'llamada') and opal.llamada():
+                        llamada = opal.llamada()
+                        if hasattr(llamada, 'ID') and llamada.ID():
+                            funcName = llamada.ID().getText()
+                        else:
+                            funcName = None
+                        if funcName:
+                            funcEntry = self.tabla.devolverID(funcName)
+                            if funcEntry:
+                                rhs_tipo = funcEntry.getTipo()
+
+                # Si se pudo determinar ambos tipos, exigir igualdad estricta
+                if lhs_tipo and rhs_tipo and lhs_tipo != rhs_tipo:
+                    print(f"ERROR SEMANTICO: Incompatibilidad de tipos al asignar {rhs_tipo} a {lhs_tipo}")
+                else:
+                    # imprimir formato extra de exit asignacion
+                    print(">>> EXIT ASIGNACION EJECUTADO <<<")
+                    self.tabla.marcarUtilizada(varNombre)  # Marcar como utilizada
+                    print(f"Asignacion valida a variable {varNombre}")
+                    print(f"  -- Se asigna un valor a la variable <{varNombre}>")
+
+    def enterAsignacion(self, ctx:compiladorParser.AsignacionContext):
+        # impresion solicitada al entrar en asignacion (formato dinamico)
+        print("Asignacion ENTER -> <>")
     
     def exitFactor(self, ctx:compiladorParser.FactorContext):
 
@@ -156,6 +220,14 @@ class Escucha (compiladorListener) :
             else:
                 self.tabla.marcarUtilizada(varNombre)  # Marcar como utilizada
                 print(f"Uso valido de variable {varNombre}")
+
+    def enterIif(self, ctx:compiladorParser.IifContext):
+        print("  " * (self.indent - 1) + "Comienza if")
+        self.indent += 1
+
+    def exitIif(self, ctx:compiladorParser.IifContext):
+        self.indent -= 1
+        print("  " * (self.indent - 1) + "Fin if")
 
     def exitProto(self, ctx:compiladorParser.ProtoContext):
 
@@ -171,8 +243,14 @@ class Escucha (compiladorListener) :
                 print(f"ERROR SEMANTICO: Funcion {nombreFuncion} ya declarada")
             else:
                 funcion = FuncionCompilador(nombreFuncion, tipoRetorno, [])
-                self.tabla.agregarId(funcion)
+                # Registrar prototipo en contexto global
+                try:
+                    self.tabla.agregarIdGlobal(funcion)
+                except Exception:
+                    self.tabla.agregarId(funcion)
                 print(f"Se declaro funcion {nombreFuncion}")
+                # Imprimir formato adicional solicitado
+                print(f"  -- Se declara funcion <{nombreFuncion}> como prototipo")
         else:
             print(f"ERROR: Prototipo mal formado")
 
@@ -191,18 +269,37 @@ class Escucha (compiladorListener) :
             if funcionExistente and funcionExistente.getVarFunc() == "funcion":
                 
                 print(f"Funcion {nombreFuncion} ya declarada como prototipo")
+                # Actualizar la firma/tipo de la funcion pero preservar el objeto
+                funcionExistente.setTipo(tipoRetorno)
+                # Preservar el estado de utilizada si ya fue marcada
+                if funcionExistente.getUtilizada():
+                    print(f"  (funcion {nombreFuncion} ya estaba marcada como utilizada)")
                 
             elif funcionExistente:
                 print(f"ERROR SEMANTICO: {nombreFuncion} ya existe pero no es una funcion")
             else:
                 
-                # Nueva función
+                # Nueva funcion
                 funcion = FuncionCompilador(nombreFuncion, tipoRetorno, [])
-                self.tabla.agregarId(funcion)
+                # Registrar la definicion en contexto global (no en el contexto de parametros)
+                try:
+                    self.tabla.agregarIdGlobal(funcion)
+                except Exception:
+                    self.tabla.agregarId(funcion)
                 print(f"Se declaro funcion {nombreFuncion}")
+                # Imprimir formato adicional solicitado
+                print(f"  -- Se declara funcion <{nombreFuncion}>")
+            
+            # Marcar como utilizada cuando se define (la definicion es una forma de uso)
+            self.tabla.marcarUtilizada(nombreFuncion)
+            # Al salir de la funcion, quitar el contexto de parametros (si existe)
+            try:
+                self.tabla.quitarContexto()
+            except Exception:
+                pass
 
     def exitArgumento(self, ctx:compiladorParser.ArgumentoContext):
-        # Maneja el primer parametro de una funcion en la declaracion
+        # maneja el primer parametro de una funcion en la declaracion
         
         if ctx.tipo() and ctx.ID():
             tipoParam = ctx.tipo().getText()
@@ -210,21 +307,33 @@ class Escucha (compiladorListener) :
             
             print(f"Parametro principal: {tipoParam} {nombreParam}")
             
-            # Verificar si el parametro ya existe en el contexto actual
-            if self.tabla.buscarId(nombreParam):
-                
-                print(f"ERROR SEMANTICO: Parametro {nombreParam} ya declarado")
-                
+            # Si este argumento pertenece a un prototipo (ProtoContext), no registrar parametros
+            parent_ctx = ctx
+            in_proto = False
+            while parent_ctx is not None:
+                if isinstance(parent_ctx, compiladorParser.ProtoContext):
+                    in_proto = True
+                    break
+                if isinstance(parent_ctx, compiladorParser.FuncionContext):
+                    break
+                parent_ctx = getattr(parent_ctx, 'parentCtx', None)
+
+            if in_proto:
+                # No agregar parametros para prototipos
+                return
+
+            # verificar si el parametro ya existe en el contexto actual
+            if self.tabla.existeEnContextoActual(nombreParam):
+                print(f"ERROR SEMANTICO: Parametro {nombreParam} ya declarado en este contexto")
             else:
-                
-                # Crea y agrega el parametro a la tabla
+                # Crea y agrega el parametro a la tabla (contexto actual)
                 parametro = VariableCompilador(nombreParam, tipoParam)
                 self.tabla.agregarId(parametro)
                 print(f"Se declaro parametro {nombreParam} de tipo {tipoParam}")
-                self.declaracion += 1
+
 
     def exitListaParametros(self, ctx:compiladorParser.ListaParametrosContext):
-        # Maneja parametros adicionales en la lista de parametros de una funcion
+        # maneja parametros adicionales en la lista de parametros de una funcion
         
         if ctx.getChildCount() == 4:  # COMA tipo ID listaParametros
             tipoParam = ctx.getChild(1).getText()  # tipo
@@ -232,18 +341,28 @@ class Escucha (compiladorListener) :
             
             print(f"Parametro adicional: {tipoParam} {nombreParam}")
             
+            # Si este argumento pertenece a un prototipo (ProtoContext), no registrar parametros
+            parent_ctx = ctx
+            in_proto = False
+            while parent_ctx is not None:
+                if isinstance(parent_ctx, compiladorParser.ProtoContext):
+                    in_proto = True
+                    break
+                if isinstance(parent_ctx, compiladorParser.FuncionContext):
+                    break
+                parent_ctx = getattr(parent_ctx, 'parentCtx', None)
+
+            if in_proto:
+                return
+
             # Verificar si el parametro ya existe en el contexto actual
-            if self.tabla.buscarId(nombreParam):
-                
-                print(f"ERROR SEMANTICO: Parametro {nombreParam} ya declarado")
-                
+            if self.tabla.existeEnContextoActual(nombreParam):
+                print(f"ERROR SEMANTICO: Parametro {nombreParam} ya declarado en este contexto")
             else:
-                
-                # Crear y agrega el parametro a la tabla
+                # Crear y agrega el parametro a la tabla (contexto actual)
                 parametro = VariableCompilador(nombreParam, tipoParam)
                 self.tabla.agregarId(parametro)
                 print(f"Se declaro parametro {nombreParam} de tipo {tipoParam}")
-                self.declaracion += 1
 
     def exitLlamada(self, ctx:compiladorParser.LlamadaContext):
 
@@ -261,6 +380,8 @@ class Escucha (compiladorListener) :
             else:
                 self.tabla.marcarUtilizada(nombreFuncion)  # Marcar funcion como utilizada
                 print(f"Llamada valida a funcion {nombreFuncion}")
+                # Imprimir formato adicional solicitado
+                print(f"  -- Llamada valida a <{nombreFuncion}>")
         else:
             print(f"ERROR: Llamada mal formada")
 
@@ -268,6 +389,9 @@ class Escucha (compiladorListener) :
 
         print("\n=== REPORTE FINAL ===")
         print("Analisis completado exitosamente")
+        
+        # Marcar main como utilizada automaticamente (es el punto de entrada)
+        self.tabla.marcarUtilizada("main")
         
         # Detectar variables/funciones no utilizadas
         noUtilizadas = self.tabla.obtenerNoUtilizadas()

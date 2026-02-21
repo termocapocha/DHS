@@ -71,6 +71,69 @@ class compiladorListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by compiladorParser#orExp.
+    def enterOrExp(self, ctx:compiladorParser.OrExpContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#orExp.
+    def exitOrExp(self, ctx:compiladorParser.OrExpContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#orExpRest.
+    def enterOrExpRest(self, ctx:compiladorParser.OrExpRestContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#orExpRest.
+    def exitOrExpRest(self, ctx:compiladorParser.OrExpRestContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#andExp.
+    def enterAndExp(self, ctx:compiladorParser.AndExpContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#andExp.
+    def exitAndExp(self, ctx:compiladorParser.AndExpContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#andExpRest.
+    def enterAndExpRest(self, ctx:compiladorParser.AndExpRestContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#andExpRest.
+    def exitAndExpRest(self, ctx:compiladorParser.AndExpRestContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#comparacion.
+    def enterComparacion(self, ctx:compiladorParser.ComparacionContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#comparacion.
+    def exitComparacion(self, ctx:compiladorParser.ComparacionContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#comparacionRest.
+    def enterComparacionRest(self, ctx:compiladorParser.ComparacionRestContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#comparacionRest.
+    def exitComparacionRest(self, ctx:compiladorParser.ComparacionRestContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#termino.
+    def enterTermino(self, ctx:compiladorParser.TerminoContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#termino.
+    def exitTermino(self, ctx:compiladorParser.TerminoContext):
+        pass
+
+
     # Enter a parse tree produced by compiladorParser#ielse.
     def enterIelse(self, ctx:compiladorParser.IelseContext):
         pass
@@ -131,15 +194,6 @@ class compiladorListener(ParseTreeListener):
 
     # Exit a parse tree produced by compiladorParser#iincdec.
     def exitIincdec(self, ctx:compiladorParser.IincdecContext):
-        pass
-
-
-    # Enter a parse tree produced by compiladorParser#comparator.
-    def enterComparator(self, ctx:compiladorParser.ComparatorContext):
-        pass
-
-    # Exit a parse tree produced by compiladorParser#comparator.
-    def exitComparator(self, ctx:compiladorParser.ComparatorContext):
         pass
 
 

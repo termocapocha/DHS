@@ -16,7 +16,9 @@ MULT : '*' ;
 DIV : '/' ;
 MOD : '%' ;
 INCDEC : '++' | '--' ;
-COMP : '==' | '!=' | '<' | '<=' | '>' | '>='|'&&' | '||' ;
+AND : '&&' ;
+OR : '||' ;
+COMP : '==' | '!=' | '<' | '<=' | '>' | '>=' ;
 LIT : 'true' | 'false' ;
 
 
@@ -63,13 +65,36 @@ iwhile : WHILE PA condicion PC instruccion;
 
 iif : IF PA condicion PC instruccion ielse ;
 
-condicion : opal | comparator | LIT ;
+condicion : orExp ;
+
+orExp : andExp orExpRest ;  // maneja los OR
+
+orExpRest : OR andExp orExpRest
+          |
+          ;
+
+andExp : comparacion andExpRest ; // maneja los AND
+
+andExpRest : AND comparacion andExpRest
+           |
+           ;
+
+comparacion : termino comparacionRest ; //lo que dice el nombre
+
+comparacionRest : COMP termino
+                |
+                ;
+
+termino : opal      //soluciona problema de los ()
+        | LIT 
+        | PA condicion PC
+        ;
 
 ielse : ELSE instruccion
       |
       ;
 
-ifor :FOR PA (asignacion | declaracion |) PYC (comparator|) PYC (iincdec|)  PC instruccion
+ifor :FOR PA (asignacion | declaracion |) PYC (comparacion|) PYC (iincdec|)  PC instruccion
      ;
      
 declaracion : tipo ID inic listavar
@@ -93,15 +118,6 @@ iincdec : ID INCDEC //new
         | INCDEC ID
         ;
 
-comparator : opal COMP opal;
-
-/*
-     ID COMP ID //new
-     | ID COMP NUMERO 
-     | NUMERO COMP ID
-     | NUMERO COMP NUMERO
-*/ 
-
 asignacion : ID ASIG opal ;
 
 funcion: tipo ID PA argumento PC bloque; //int funcion(int x, double y,..){}
@@ -117,7 +133,7 @@ listaArgumentos : COMA opal listaArgumentos |;
               
 argumentosLlamada :  opal listaArgumentos|;
 
-ireturn : RETURN (opal|LIT|comparator|) ;
+ireturn : RETURN (opal|LIT|condicion|) ;
 
 opal : exp
      ;

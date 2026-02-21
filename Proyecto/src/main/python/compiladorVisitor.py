@@ -44,6 +44,41 @@ class compiladorVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by compiladorParser#orExp.
+    def visitOrExp(self, ctx:compiladorParser.OrExpContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#orExpRest.
+    def visitOrExpRest(self, ctx:compiladorParser.OrExpRestContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#andExp.
+    def visitAndExp(self, ctx:compiladorParser.AndExpContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#andExpRest.
+    def visitAndExpRest(self, ctx:compiladorParser.AndExpRestContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#comparacion.
+    def visitComparacion(self, ctx:compiladorParser.ComparacionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#comparacionRest.
+    def visitComparacionRest(self, ctx:compiladorParser.ComparacionRestContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#termino.
+    def visitTermino(self, ctx:compiladorParser.TerminoContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by compiladorParser#ielse.
     def visitIelse(self, ctx:compiladorParser.IelseContext):
         return self.visitChildren(ctx)
@@ -76,11 +111,6 @@ class compiladorVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by compiladorParser#iincdec.
     def visitIincdec(self, ctx:compiladorParser.IincdecContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by compiladorParser#comparator.
-    def visitComparator(self, ctx:compiladorParser.ComparatorContext):
         return self.visitChildren(ctx)
 
 

@@ -1,18 +1,41 @@
-double calcular(int x, double y, int z);
+double div (double a, double b);
 
-int algo();
+int  escaneo (int a, int b, int c, int f) {
+    int r = 0;
 
-double convertir(double valor);
+    if (a > b && b > c) {
+        r = 1;
+    }else{
+        r = 2;
+    }
 
-int a = 10;
-double b = 3.5;
+    f=9;
+    
 
-calcular(a, b, a);
-algo();
-convertir(b);
+    while (r > 0 && (a > 0 && b > 0)) {
+        r = r - 1;
+    }
 
-calcular(a);
-calcular(a, b, a, b);
-calcular(b, a, b);
-algo(a);
-convertir();
+    return r;
+}
+
+double div (double a, double b){
+    double c = a / b;
+    return c;
+}
+
+int main() {
+    int x = 5;
+    int y = 4;
+    int z = 3;
+    int resultado;
+    int f = 67;
+
+    resultado = escaneo(x, y, z, f);
+
+    if (resultado != 0 && resultado <= 10) {
+        resultado = resultado + 1;
+    }
+
+    return 0;
+}

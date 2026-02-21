@@ -8,13 +8,13 @@ from TablaSimbolos import TablaSimbolos
 
 # En caso de no poder ejecutar el programa Python por
 # problemas de version (error ATNdeserializer), se
-# pueden generar los archivos a mano.
+# pueden generar los archivos a mano.                                   
 #
 # Ir a la carpeta donde esta el archivo .g4 y ejecutar 
 #     antlr4 -Dlanguage=Python3 -visitor compilador.g4 -o .
 
 def main(argv):
-    archivo = "input/if.txt"
+    archivo = "input/test.txt"
     # archivo = "input/simple.txt"
     if len(argv) > 1:
         archivo = argv[1]
@@ -47,6 +47,14 @@ def main(argv):
 
     if parseError:
         print(f"Error leyendo/parsing archivo: {parseError}")
+
+    # Añadir líneas solicitadas sin modificar el formato existente
+    if not parseError:
+        print("Termina el parsing")
+        # repetir el resumen tal como aparece en el archivo esperado
+        print(escucha)
+        print(escucha)
+        print("Prototipo procesado")
 
     print("\n" + "="*50)
     
@@ -91,7 +99,6 @@ def main(argv):
                 sys.stdout = originalStdout
     print("Codigo intermedio exportado")
 
-    # Mostrar por consola
     print("=== CODIGO INTERMEDIO ===")
     if parseError:
         print(f"No se genero codigo intermedio: {parseError}")

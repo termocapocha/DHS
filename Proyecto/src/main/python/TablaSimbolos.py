@@ -31,24 +31,20 @@ class TablaSimbolos:
 
     def buscarId(self, keyId): #busca un ID especifico los contexto
       
-        # Busca de afuera hacia adentro (mas global a mas local)
-        for contexto in self._contexto:
-            
+        # Busca de adentro hacia afuera (mas local a mas global)
+        for i in range(len(self._contexto) - 1, -1, -1):
+            contexto = self._contexto[i]
             if keyId in contexto:
-                
-                return True         #si todo sale bien deberia delvoler true
-            
+                return True
         return False
 
     def devolverID(self, keyId): #
   
-        # Busca de afuera hacia adentro (mas global a mas local)
-        for contexto in self._contexto:
-            
+        # Busca de adentro hacia afuera (mas local a mas global)
+        for i in range(len(self._contexto) - 1, -1, -1):
+            contexto = self._contexto[i]
             if keyId in contexto:
-                
-                return contexto[keyId]  
-                  
+                return contexto[keyId]
         return False
 
     def getNumeroContextos(self):
@@ -57,20 +53,26 @@ class TablaSimbolos:
     def getContextoActual(self):
         #Retorna una copia del contexto actual para inspeccion
         return dict(self._contexto[-1])
+
+    def existeEnContextoActual(self, keyId):
+        # Verifica si un identificador existe en el contexto actual (sin buscar en otros)
+        if not self._contexto:
+            return False
+        return keyId in self._contexto[-1]
         
     def iterarContextos(self):
         #Generador que permite iterar sobre los contextos de manera segura
-        for contexto in self._contexto:
-            yield dict(contexto)  # Retorna copias para evitar modificaciones externas
+        # Itera de local a global
+        for i in range(len(self._contexto) - 1, -1, -1):
+            yield dict(self._contexto[i])  # Retorna copias para evitar modificaciones externas
             
     def marcarUtilizada(self, keyId):
-        #Marca una variable/funcion como utilizada
-        for contexto in self._contexto:
-            
+        # Marca una variable/funcion como utilizada buscando de local a global
+        for i in range(len(self._contexto) - 1, -1, -1):
+            contexto = self._contexto[i]
             if keyId in contexto:
                 contexto[keyId].marcarUtilizada()
                 return True
-            
         return False
         
     def obtenerNoUtilizadas(self):
@@ -111,6 +113,12 @@ class TablaSimbolos:
             else:
                 archivo.write("  (vacío)\n")
             archivo.write("\n")
+
+    def agregarIdGlobal(self, ID):
+        # Agrega un identificador en el contexto global (indice 0)
+        if len(self._contexto) == 0:
+            self._inicializar()
+        self._contexto[0][ID.getNombre()] = ID
 
 
 class ID:
