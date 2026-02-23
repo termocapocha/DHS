@@ -1,7 +1,0 @@
-CONTEXTOS DE LA TABLA DE SIMBOLOS:
-
-CONTEXTO 0:
-  - div: funcion double
-  - escaneo: funcion int
-  - main: funcion int
-

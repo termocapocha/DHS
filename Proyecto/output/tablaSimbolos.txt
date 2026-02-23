@@ -1,0 +1,6 @@
+Tabla de Simbolos generada
+
+CONTEXTO 0 (global):
+  - y: variable int
+  - x: variable int
+

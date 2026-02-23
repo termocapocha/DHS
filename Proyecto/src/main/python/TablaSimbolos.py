@@ -1,174 +1,202 @@
 class TablaSimbolos:
-
-    _tablaUnica = None
+    tablaUnica = None
 
     def __new__(cls):
+        if cls.tablaUnica is None:
+            cls.tablaUnica = super(TablaSimbolos, cls).__new__(cls)
+            cls.tablaUnica.inicializar()
+        return cls.tablaUnica
 
-        if cls._tablaUnica is None:
-           cls._tablaUnica = super(TablaSimbolos, cls).__new__(cls)
-           cls._tablaUnica._inicializar()
-        return cls._tablaUnica
-
-    def _inicializar(self):
-        # Cada diccionario almacena los identificadores de ese contexto
-        self._contexto = [dict()]
+    def inicializar(self):
+        self.contexto = [dict()]
+        self.historial = []
+        self.contextoId = 1
+        self.tiposContexto = {0: "global"}
+        self.indiceAId = {0: 0}
         
     def reiniciar(self):
-        # Metodo para reiniciar la tabla de símbolos
-        self._inicializar()
+        self.inicializar()
 
-    def agregarContexto(self):  #cuando se entra a un bloque
+    def agregarContexto(self, tipo="bloque"):
+        nuevoId = self.contextoId
+        self.contextoId += 1
+        self.contexto.append(dict())
+        self.tiposContexto[nuevoId] = tipo
+        self.indiceAId[len(self.contexto) - 1] = nuevoId
+        return nuevoId
 
-        self._contexto.append(dict())
+    def quitarContexto(self):
+        if len(self.contexto) > 0:
+            indiceCerrar = len(self.contexto) - 1
+            contextoId = self.indiceAId.get(indiceCerrar, indiceCerrar)
+            tipo = self.tiposContexto.get(contextoId, "desconocido")
+            contexto = self.contexto.pop()
+            try:
+                self.historial.append((contextoId, dict(contexto), tipo))
+            except Exception:
+                pass
+            if indiceCerrar in self.indiceAId:
+                del self.indiceAId[indiceCerrar]
 
-    def quitarContexto(self):#cuando se sale de un bloque
+    def agregarId(self, ID):
+        self.contexto[-1][ID.getNombre()] = ID
 
-        self._contexto.pop()
-
-    def agregarId(self, ID): #agrega un ID al contexto actual
-        
-        self._contexto[-1][ID.getNombre()] = ID
-
-    def buscarId(self, keyId): #busca un ID especifico los contexto
-      
-        # Busca de adentro hacia afuera (mas local a mas global)
-        for i in range(len(self._contexto) - 1, -1, -1):
-            contexto = self._contexto[i]
-            if keyId in contexto:
-                return True
+    def buscarId(self, keyId):
+        for i in range(len(self.contexto) - 1, -1, -1):
+            if keyId in self.contexto[i]:
+                return self.contexto[i][keyId]
         return False
 
-    def devolverID(self, keyId): #
-  
-        # Busca de adentro hacia afuera (mas local a mas global)
-        for i in range(len(self._contexto) - 1, -1, -1):
-            contexto = self._contexto[i]
-            if keyId in contexto:
-                return contexto[keyId]
+    def devolverID(self, keyId):
+        for i in range(len(self.contexto) - 1, -1, -1):
+            if keyId in self.contexto[i]:
+                return self.contexto[i][keyId]
         return False
 
     def getNumeroContextos(self):
-        return len(self._contexto)
+        return len(self.contexto)
         
     def getContextoActual(self):
-        #Retorna una copia del contexto actual para inspeccion
-        return dict(self._contexto[-1])
+        return dict(self.contexto[-1])
+    
+    def getTipoContextoActual(self):
+        indice = len(self.contexto) - 1
+        contextoId = self.indiceAId.get(indice, indice)
+        return self.tiposContexto.get(contextoId, "desconocido")
 
     def existeEnContextoActual(self, keyId):
-        # Verifica si un identificador existe en el contexto actual (sin buscar en otros)
-        if not self._contexto:
+        if not self.contexto:
             return False
-        return keyId in self._contexto[-1]
-        
-    def iterarContextos(self):
-        #Generador que permite iterar sobre los contextos de manera segura
-        # Itera de local a global
-        for i in range(len(self._contexto) - 1, -1, -1):
-            yield dict(self._contexto[i])  # Retorna copias para evitar modificaciones externas
+        return keyId in self.contexto[-1]
             
     def marcarUtilizada(self, keyId):
-        # Marca una variable/funcion como utilizada buscando de local a global
-        for i in range(len(self._contexto) - 1, -1, -1):
-            contexto = self._contexto[i]
-            if keyId in contexto:
-                contexto[keyId].marcarUtilizada()
+        for i in range(len(self.contexto) - 1, -1, -1):
+            if keyId in self.contexto[i]:
+                self.contexto[i][keyId].marcarUtilizada()
                 return True
         return False
         
     def obtenerNoUtilizadas(self):
-        #Retorna una lista de variables/funciones declaradas pero no utilizadas
         noUtilizadas = []
-        for i, contexto in enumerate(self._contexto):
-            
+        for i, contexto in enumerate(self.contexto):
+            contextoId = self.indiceAId.get(i, i)
             for nombre, simbolo in contexto.items():
-                
                 if not simbolo.getUtilizada():
-                    
                     noUtilizadas.append({
                         'nombre': nombre,
                         'tipo': simbolo.getTipo(),
                         'varFunc': simbolo.getVarFunc(),
-                        'contexto': i
+                        'contexto': contextoId
                     })
-                    
         return noUtilizadas
         
     def exportarTabla(self, archivo):
-        #Exporta la tabla de simbolos completa a un archivo
-        archivo.write("CONTEXTOS DE LA TABLA DE SIMBOLOS:\n\n")
+        archivo.write("Tabla de Simbolos generada\n\n")
+        todos = {}
+        tipos = {}
         
-        for i, contexto in enumerate(self._contexto):
-            archivo.write(f"CONTEXTO {i}:\n")
+        for i, c in enumerate(self.contexto):
+            contextoId = self.indiceAId.get(i, i)
+            todos[contextoId] = c
+            tipos[contextoId] = self.tiposContexto.get(contextoId, "desconocido")
+                
+        for idx, c, tipo in self.historial:
+            todos[idx] = c
+            tipos[idx] = tipo
+
+        for i in sorted(todos.keys()):
+            contexto = todos[i]
+            tipo = tipos.get(i, "desconocido")
+            
+            etiquetas = {0: "global", "funcion": "funcion", "if": "if", "else": "else", "while": "while"}
+            if i == 0:
+                archivo.write("CONTEXTO 0 (global):\n")
+            elif tipo in etiquetas:
+                archivo.write(f"CONTEXTO {i} ({etiquetas[tipo]}):\n")
+            else:
+                archivo.write(f"CONTEXTO {i} ({tipo}):\n")
+            
             if contexto:
                 for nombre, item in contexto.items():
-                    # Detectar si el ID representa una funcion o una variable
                     try:
                         if item.getVarFunc() == "funcion":
-                            archivo.write(f"  - {nombre}: funcion {item.getTipo()}\n")
+                            params = ""
+                            if hasattr(item, 'getParametros') and item.getParametros():
+                                paramsList = list(reversed(item.getParametros()))
+                                paramsStr = ", ".join([f"{p.getTipo()} {p.getNombre()}" for p in paramsList])
+                                params = f"\n     parametros: {paramsStr}"
+                            archivo.write(f"  - {nombre}: funcion {item.getTipo()}{params}\n")
                         else:
-                            archivo.write(f"  - {nombre}: variable {item.getTipo()}\n")
+                            esParametro = getattr(item, '_esParametro', False)
+                            tipoItem = "parametro" if esParametro else "variable"
+                            archivo.write(f"  - {nombre}: {tipoItem} {item.getTipo()}\n")
                     except Exception:
-                        # Fallback por seguridad
                         archivo.write(f"  - {nombre}: {item.getTipo()}\n")
             else:
-                archivo.write("  (vacío)\n")
+                archivo.write("  (vacio)\n")
             archivo.write("\n")
 
     def agregarIdGlobal(self, ID):
-        # Agrega un identificador en el contexto global (indice 0)
-        if len(self._contexto) == 0:
-            self._inicializar()
-        self._contexto[0][ID.getNombre()] = ID
+        if len(self.contexto) == 0:
+            self.inicializar()
+        self.contexto[0][ID.getNombre()] = ID
 
 
 class ID:
-    
-    def __init__(self, nombre, tipo):
-        
-        self._nombre = nombre        # Nombre del identificador (privado)
-        self._tipo = tipo           # Tipo de dato (privado)
-        self._varFunc = "variable" # Indica si es "variable" o "funcion" (privado)
-        self._utilizada = False    # Indica si ha sido utilizada (privado)
+    def __init__(self, nombre, tipo, varFunc="variable"):
+        self.nombre = nombre
+        self.tipo = tipo
+        self.varFunc = varFunc
+        self.utilizada = False
+        self.esParametro = False
 
     def getNombre(self):
-        return self._nombre
+        return self.nombre
     
     def setNombre(self, nombre):
-        self._nombre = nombre
+        self.nombre = nombre
         
     def getTipo(self):
-        return self._tipo
+        return self.tipo
         
     def setTipo(self, tipo):
-        self._tipo = tipo
+        self.tipo = tipo
         
     def getVarFunc(self):
-        return self._varFunc
+        return self.varFunc
         
     def setVarFunc(self, varFunc):
-        self._varFunc = varFunc
+        self.varFunc = varFunc
         
     def getUtilizada(self):
-        return self._utilizada
+        return self.utilizada
         
     def setUtilizada(self, utilizada):
-        self._utilizada = utilizada
+        self.utilizada = utilizada
         
     def marcarUtilizada(self):
-        self._utilizada = True
+        self.utilizada = True
+        
+    def esParametro(self):
+        return self.esParametro
+        
+    def setEsParametro(self, esParametro):
+        self.esParametro = esParametro
 
-    def toString(self): #ID a string 
+    def toString(self):
+        return f'(name->{self.nombre},tipo->{self.tipo},varFun->{self.varFunc},utilizada->{self.utilizada})'
 
-        return f'(name->{self._nombre},tipo->{self._tipo},varFun->{self._varFunc},utilizada->{self._utilizada})'
+
+class FuncionCompilador(ID):
+    def __init__(self, nombre, tipo, parametros):
+        super().__init__(nombre, tipo, "funcion")
+        self.parametros = parametros if parametros else []
+        
+    def getParametros(self):
+        return self.parametros
+    
+    def setParametros(self, parametros):
+        self.parametros = parametros if parametros else []
 
 
-class VariableCompilador(ID): #repesenta una variable
-
-    pass
-
-class FuncionCompilador(ID): #representa una funcion
-
-    def __init__(self, nombre, tipo, parametros): #constructor (de la funcion)
-
-        super().__init__(nombre, tipo) 
-        self.setVarFunc("funcion")      
+VariableCompilador = ID

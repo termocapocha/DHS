@@ -1,33 +1,22 @@
 import sys
 from antlr4 import *
-from compiladorLexer  import compiladorLexer
+from compiladorLexer import compiladorLexer
 from compiladorParser import compiladorParser
 from Escucha import Escucha
 from Caminante import Caminante
 from TablaSimbolos import TablaSimbolos
 
-# En caso de no poder ejecutar el programa Python por
-# problemas de version (error ATNdeserializer), se
-# pueden generar los archivos a mano.                                   
-#
-# Ir a la carpeta donde esta el archivo .g4 y ejecutar 
-#     antlr4 -Dlanguage=Python3 -visitor compilador.g4 -o .
-
 def main(argv):
-    archivo = "input/test.txt"
-    # archivo = "input/simple.txt"
+    archivo = "input/if.txt"
     if len(argv) > 1:
         archivo = argv[1]
 
-    # muestra que archivo se va a procesar ()
     import os
     archivo = os.path.normpath(archivo)
     print(f"Procesando archivo: {archivo}")
     
-    # Reiniciar tabla de simbolos antes de cada parseo (evita residuos)
     TablaSimbolos().reiniciar()
 
-    # Analisis lexico, sintactico y semantico
     escucha = Escucha()
     tree = None
     parseError = None
@@ -46,26 +35,17 @@ def main(argv):
         parseError = f"ParseError: {type(e).__name__}: {e}"
 
     if parseError:
-        print(f"Error leyendo/parsing archivo: {parseError}")
+        print(f"Error leyendo archivo: {parseError}")
 
-    # Añadir líneas solicitadas sin modificar el formato existente
     if not parseError:
         print("Termina el parsing")
-        # repetir el resumen tal como aparece en el archivo esperado
         print(escucha)
         print(escucha)
         print("Prototipo procesado")
 
     print("\n" + "="*50)
     
-    # Generar archivos de salida requeridos (siempre actualizados para esta compilacion)
-    baseName = os.path.splitext(os.path.basename(archivo))[0]
-
-    # 1. Exportar tabla de simbolos (archivo unico, actualizado)
-    # Escribe la tabla en la misma carpeta que el archivo de entrada ()
-    import os as _os    #esto solo es para hacerlo dinamico
-    tablaFile = _os.path.join(_os.path.dirname(archivo), "tablaSimbolos.txt") 
-    from datetime import datetime
+    tablaFile = "output/tablaSimbolos.txt"
     with open(tablaFile, 'w', encoding='utf-8') as f:
         if parseError:
             f.write("No se pudo generar la tabla de simbolos por error de parseo.\n")
@@ -74,40 +54,46 @@ def main(argv):
             escucha.tabla.exportarTabla(f)
     print("Tabla de simbolos exportada")
     
-    # 2. Generar codigo intermedio
-    caminante = Caminante()
-    
-    # Exporta el archivo (se sobrescribe en cada ejecucion)
-    # Escribe el codigo intermedio en la misma carpeta que el archivo de entrada ()
-    codigoFile = _os.path.join(_os.path.dirname(archivo), "codigoIntermedio.txt")
-    from datetime import datetime as _dt
-    with open(codigoFile, 'w', encoding='utf-8') as f:
-        if parseError:
-            f.write("No se pudo generar codigo intermedio por error de parseo.\n")
+    codigoIntermedio = ""
+    if not parseError:
+        try:
+            caminante = Caminante()
+            caminante.visit(tree)
+            cleanOutput = caminante.codigoOriginal
+            optimizado = caminante.codigoOptimizado
+            
+            with open("output/CodigoIntermedio.txt", 'w', encoding='utf-8') as f:
+                for linea in cleanOutput:
+                    f.write(linea + "\n")
+            
+            with open("output/CodigoOptimizado.txt", 'w', encoding='utf-8') as f:
+                for linea in optimizado:
+                    f.write(linea + "\n")
+            
+            codigoIntermedio = "\n".join(cleanOutput)
+            
+        except Exception as e:
+            with open("output/CodigoIntermedio.txt", 'w', encoding='utf-8') as f:
+                f.write(f"# Error visitando arbol: {type(e).__name__}: {e}\n")
+            with open("output/CodigoOptimizado.txt", 'w', encoding='utf-8') as f:
+                f.write(f"# Error optimizando: {type(e).__name__}: {e}\n")
+            parseError = str(e)
+    else:
+        with open("output/CodigoIntermedio.txt", 'w', encoding='utf-8') as f:
+            f.write(f"# No se pudo generar codigo intermedio por error de parseo.\n")
             f.write(f"# error: {parseError}\n")
-        else:
-            originalStdout = sys.stdout
-            sys.stdout = f
-            try:
-                caminante.visit(tree)
-            except Exception as e:
-                # Registrar el error en el archivo (ante la duda)
-                sys.stdout = originalStdout
-                with open(codigoFile, 'a', encoding='utf-8') as fa:
-                    fa.write(f"# visitorError: {type(e).__name__}: {e}\n")
-            finally:
-                sys.stdout = originalStdout
+        with open("output/CodigoOptimizado.txt", 'w', encoding='utf-8') as f:
+            f.write(f"# No se pudo generar codigo optimizado por error de parseo.\n")
+            f.write(f"# error: {parseError}\n")
+    
     print("Codigo intermedio exportado")
+    print("Codigo optimizado exportado")
 
     print("=== CODIGO INTERMEDIO ===")
     if parseError:
         print(f"No se genero codigo intermedio: {parseError}")
     else:
-        try:
-            caminante.visit(tree)
-        except Exception as e:
-            print(f"Error generando codigo en consola: {type(e).__name__}: {e}")
-    print("="*50)
+        print(codigoIntermedio)
 
 if __name__ == '__main__':
     main(sys.argv)
