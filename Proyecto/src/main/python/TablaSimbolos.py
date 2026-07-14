@@ -42,10 +42,7 @@ class TablaSimbolos:
         self.contexto[-1][ID.getNombre()] = ID
 
     def buscarId(self, keyId):
-        for i in range(len(self.contexto) - 1, -1, -1):
-            if keyId in self.contexto[i]:
-                return self.contexto[i][keyId]
-        return False
+        return self.devolverID(keyId)
 
     def devolverID(self, keyId):
         for i in range(len(self.contexto) - 1, -1, -1):

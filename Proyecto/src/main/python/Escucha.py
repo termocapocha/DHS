@@ -169,6 +169,40 @@ class Escucha (compiladorListener):
         self.tabla.marcarUtilizada(varNombre)
         return True
 
+    def _obtenerTipoExpresion(self, ctx):
+        if hasattr(ctx, 'opal') and ctx.opal():
+            opal = ctx.opal()
+        elif hasattr(ctx, 'exp') and ctx.exp():
+            opal = ctx
+        else:
+            return None
+        return self._tipoDesdeOpal(opal)
+
+    def _tipoDesdeOpal(self, opal):
+        if not opal:
+            return None
+        if not hasattr(opal, 'exp') or not opal.exp():
+            return None
+        exp = opal.exp()
+        if not hasattr(exp, 'term') or not exp.term():
+            return None
+        term = exp.term()
+        if not hasattr(term, 'factor') or not term.factor():
+            return None
+        factor = term.factor()
+
+        if factor.ID():
+            entry = self.tabla.devolverID(factor.ID().getText())
+            return entry.getTipo() if entry else None
+        elif factor.NUMERO():
+            return 'int'
+        elif factor.DECIMAL():
+            return 'double'
+        elif factor.llamada():
+            funcEntry = self.tabla.devolverID(factor.llamada().ID().getText())
+            return funcEntry.getTipo() if funcEntry else None
+        return None
+
     def exitAsignacion(self, ctx):
         if ctx.ID():
             varNombre = ctx.ID().getText()
@@ -176,24 +210,7 @@ class Escucha (compiladorListener):
                 lhs = self.tabla.devolverID(varNombre)
                 lhsTipo = lhs.getTipo() if lhs else None
 
-                rhsTipo = None
-                if hasattr(ctx, 'opal') and ctx.opal():
-                    opal = ctx.opal()
-                    if hasattr(opal, 'ID') and opal.ID():
-                        idname = opal.ID().getText()
-                        entry = self.tabla.devolverID(idname)
-                        if entry:
-                            rhsTipo = entry.getTipo()
-                    elif hasattr(opal, 'NUMERO') and opal.NUMERO():
-                        numtxt = opal.NUMERO().getText()
-                        rhsTipo = 'double' if '.' in numtxt else 'int'
-                    elif hasattr(opal, 'llamada') and opal.llamada():
-                        llamada = opal.llamada()
-                        if hasattr(llamada, 'ID') and llamada.ID():
-                            funcName = llamada.ID().getText()
-                            funcEntry = self.tabla.devolverID(funcName)
-                            if funcEntry:
-                                rhsTipo = funcEntry.getTipo()
+                rhsTipo = self._tipoDesdeOpal(ctx.opal()) if ctx.opal() else None
 
                 if lhsTipo and rhsTipo and lhsTipo != rhsTipo:
                     print(f"ERROR SEMANTICO: Incompatibilidad de tipos al asignar {rhsTipo} a {lhsTipo}")

@@ -1,3 +1,4 @@
+import re
 from compiladorVisitor import compiladorVisitor
 from compiladorParser import compiladorParser
 from CodigoTresDirecciones import CodigoTresDirecciones
@@ -172,6 +173,22 @@ class Caminante(compiladorVisitor):
                 self.c3d.asignacion(variable, valor)
         return None
 
+    # INCDEC (++ / --)
+    def visitIincdec(self, ctx):
+        if ctx.INCDEC():
+            op = ctx.INCDEC().getText()
+            if ctx.ID():
+                var = ctx.ID().getText()
+                if op == '++':
+                    temp = self.nuevaTemporal()
+                    self.c3d.operacion(temp, var, '+', '1')
+                    self.c3d.asignacion(var, temp)
+                elif op == '--':
+                    temp = self.nuevaTemporal()
+                    self.c3d.operacion(temp, var, '-', '1')
+                    self.c3d.asignacion(var, temp)
+        return None
+
     # IF
     def visitIif(self, ctx):
         condicion_ctx = ctx.condicion()
@@ -267,7 +284,10 @@ class Caminante(compiladorVisitor):
         
         orExp = ctx.orExp()
         
-        if not orExp.orExpRest() or orExp.orExpRest().getChildCount() == 0:
+        noOr = not orExp.orExpRest() or orExp.orExpRest().getChildCount() == 0
+        noAnd = not orExp.andExp() or not orExp.andExp().andExpRest() or orExp.andExp().andExpRest().getChildCount() == 0
+        
+        if noOr and noAnd:
             comp = orExp.andExp().comparacion() if orExp.andExp() else None
             if comp:
                 return self._evaluarComparacionSimple(comp)
@@ -300,39 +320,62 @@ class Caminante(compiladorVisitor):
         return t
 
     def _evaluarExpresionBooleana(self, ctx):
+        # ctx is orExp context
         andExp = ctx.andExp()
         if not andExp:
             return "0"
         
         result = self.nuevaTemporal()
         
-        comp1 = andExp.comparacion()
+        self._evaluarAndGroup(andExp, result)
+        
+        # Process OR chain with short-circuit
+        if ctx.orExpRest() and ctx.orExpRest().getChildCount() > 0:
+            LEnd = self.nuevoLabel()
+            self._procesarOrChain(ctx.orExpRest(), result, LEnd)
+            self.c3d.agregarInstruccion(f"{LEnd}:")
+        
+        return result
+
+    def _evaluarAndGroup(self, andExpCtx, result):
+        comp1 = andExpCtx.comparacion()
         if comp1:
             val1 = self._evaluarComparacionSimple(comp1)
             self.c3d.asignacion(result, val1)
             
-            if andExp.andExpRest() and andExp.andExpRest().getChildCount() > 0:
+            if andExpCtx.andExpRest() and andExpCtx.andExpRest().getChildCount() > 0:
                 LFalse = self.nuevoLabel()
                 self.c3d.agregarInstruccion(f"ifFalse {result} goto {LFalse}")
-                self._procesarAndExpRest(andExp.andExpRest(), result, LFalse)
+                self._procesarAndExpRest(andExpCtx.andExpRest(), result, LFalse)
                 self.c3d.agregarInstruccion(f"{LFalse}:")
                 self.c3d.asignacion(result, '0')
+
+    def _procesarOrChain(self, ctx, result, LEnd):
+        if ctx.getChildCount() == 0:
+            return
         
-        return result
+        LNext = self.nuevoLabel()
+        self.c3d.agregarInstruccion(f"ifTrue {result} goto {LNext}")
+        
+        if hasattr(ctx, 'andExp') and ctx.andExp():
+            self._evaluarAndGroup(ctx.andExp(), result)
+            self.c3d.agregarInstruccion(f"ifTrue {result} goto {LEnd}")
+        
+        self.c3d.agregarInstruccion(f"{LNext}:")
+        
+        if hasattr(ctx, 'orExpRest') and ctx.orExpRest() and ctx.orExpRest().getChildCount() > 0:
+            self._procesarOrChain(ctx.orExpRest(), result, LEnd)
 
     def _procesarAndExpRest(self, ctx, resultTemp, LFalso):
-        if ctx.getChildCount() >= 2:
-            comp = ctx.getChild(1)
-            if hasattr(comp, 'comparacion'):
-                val = self._evaluarComparacionSimple(comp.comparacion())
-                temp = self.nuevaTemporal()
-                self.c3d.operacion(temp, resultTemp, '&&', val)
-                self.c3d.agregarInstruccion(f"ifFalse {temp} goto {LFalso}")
-                self.c3d.asignacion(resultTemp, temp)
+        if ctx.comparacion():
+            val = self._evaluarComparacionSimple(ctx.comparacion())
+            temp = self.nuevaTemporal()
+            self.c3d.operacion(temp, resultTemp, '&&', val)
+            self.c3d.agregarInstruccion(f"ifFalse {temp} goto {LFalso}")
+            self.c3d.asignacion(resultTemp, temp)
         
-        if ctx.getChildCount() > 2:
-            rest = ctx.getChild(2)
-            self._procesarAndExpRest(rest, resultTemp, LFalso)
+        if ctx.andExpRest() and ctx.andExpRest().getChildCount() > 0:
+            self._procesarAndExpRest(ctx.andExpRest(), resultTemp, LFalso)
 
     def _obtenerValorTermino(self, ctx):
         if not ctx:
@@ -368,42 +411,22 @@ class Caminante(compiladorVisitor):
         LInicio = self.nuevoLabel()
         LFin = self.nuevoLabel()
         
-        if ctx.getChildCount() >= 2:
-            init = ctx.getChild(2)
-            if hasattr(init, 'getRuleIndex'):
-                if init.getRuleIndex() == compiladorParser.RULE_asignacion:
-                    self.visitAsignacion(init)
-                elif init.getRuleIndex() == compiladorParser.RULE_declaracion:
-                    self.visitDeclaracion(init)
+        if ctx.asignacion():
+            self.visitAsignacion(ctx.asignacion())
+        elif ctx.declaracion():
+            self.visitDeclaracion(ctx.declaracion())
         
         self.c3d.agregarInstruccion(f"{LInicio}:")
         
-        if ctx.getChildCount() >= 4:
-            comp = ctx.getChild(4)
-            if hasattr(comp, 'getText') and comp.getText():
-                condicion = self._evaluarCondicion(comp)
-                self.c3d.agregarInstruccion(f"ifFalse {condicion} goto {LFin}")
+        if ctx.comparacion() and ctx.comparacion().getText():
+            condicion = self._evaluarCondicion(ctx.comparacion())
+            self.c3d.agregarInstruccion(f"ifFalse {condicion} goto {LFin}")
         
-        if ctx.getChildCount() >= 7:
-            instr = ctx.getChild(7)
-            if hasattr(instr, 'getRuleIndex'):
-                self.visit(instr)
+        if ctx.instruccion():
+            self.visitInstruccion(ctx.instruccion())
         
-        if ctx.getChildCount() >= 6:
-            inc = ctx.getChild(6)
-            if hasattr(inc, 'getRuleIndex') and inc.getRuleIndex() == compiladorParser.RULE_iincdec:
-                if hasattr(inc, 'ID') and inc.ID():
-                    var = inc.ID().getText()
-                    if hasattr(inc, 'INCDEC') and inc.INCDEC():
-                        op = inc.INCDEC().getText()
-                        if op == '++':
-                            temp = self.nuevaTemporal()
-                            self.c3d.operacion(temp, var, '+', '1')
-                            self.c3d.asignacion(var, temp)
-                        elif op == '--':
-                            temp = self.nuevaTemporal()
-                            self.c3d.operacion(temp, var, '-', '1')
-                            self.c3d.asignacion(var, temp)
+        if ctx.iincdec():
+            self.visitIincdec(ctx.iincdec())
         
         self.c3d.agregarInstruccion(f"goto {LInicio}")
         self.c3d.agregarInstruccion(f"{LFin}:")
@@ -465,13 +488,7 @@ class Caminante(compiladorVisitor):
         return args
 
     def visitBloque(self, ctx):
-        if ctx.children:
-            for child in ctx.children:
-                if hasattr(child, 'getRuleIndex'):
-                    ruleIndex = child.getRuleIndex()
-                    if ruleIndex == compiladorParser.RULE_instrucciones:
-                        self.visitInstrucciones(child)
-        return None
+        return self.visitChildren(ctx)
 
     def visitIreturn(self, ctx):
         if hasattr(ctx, 'opal') and ctx.opal():
@@ -578,6 +595,10 @@ class Caminante(compiladorVisitor):
         s = s.strip()
         return s.startswith('ifFalse ')
 
+    def startsWithIfTrue(self, s):
+        s = s.strip()
+        return s.startswith('ifTrue ')
+
     def isTemp(self, var):
         return var.startswith('t') and var[1:].isdigit()
 
@@ -593,7 +614,7 @@ class Caminante(compiladorVisitor):
             
             stripped = linea.strip()
             
-            if self.endsWithLabel(stripped) or self.startsWithGoto(stripped) or self.startsWithIfFalse(stripped):
+            if self.endsWithLabel(stripped) or self.startsWithGoto(stripped) or self.startsWithIfFalse(stripped) or self.startsWithIfTrue(stripped):
                 resultado.append(linea)
                 mapa = {}
                 continue
@@ -615,7 +636,7 @@ class Caminante(compiladorVisitor):
             
             lineaMod = linea
             for temp, val in mapa.items():
-                lineaMod = lineaMod.replace(temp, val)
+                lineaMod = re.sub(rf'\b{re.escape(temp)}\b', val, lineaMod)
             
             resultado.append(lineaMod)
         

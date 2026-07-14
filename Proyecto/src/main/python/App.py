@@ -28,7 +28,6 @@ def main(argv):
         parser = compiladorParser(stream)
         parser.addParseListener(escucha)
         tree = parser.programa()
-        print(escucha)
     except FileNotFoundError as e:
         parseError = f"FileNotFoundError: {e}"
     except Exception as e:
@@ -39,7 +38,6 @@ def main(argv):
 
     if not parseError:
         print("Termina el parsing")
-        print(escucha)
         print(escucha)
         print("Prototipo procesado")
 
