@@ -11,8 +11,6 @@ class Escucha (compiladorListener):
     profundidad = 0
     numNodos = 0
     tabla = None
-    parametrosFuncion = []
-    parametrosAgregados = False
     
     def enterPrograma(self, ctx):
         if not hasattr(self, 'parsing_started'):
@@ -20,6 +18,8 @@ class Escucha (compiladorListener):
             self.parsing_started = True
         if self.tabla is None:
             self.tabla = TablaSimbolos()
+        self.parametrosFuncion = []
+        self.parametrosAgregados = False
 
     def enterFuncion(self, ctx):
         print("  Comienza funcion")
@@ -225,8 +225,17 @@ class Escucha (compiladorListener):
     def exitFactor(self, ctx):
         if ctx.ID():
             varNombre = ctx.ID().getText()
+            entry = self.tabla.devolverID(varNombre)
+            if entry and entry.getVarFunc() == "funcion":
+                return
             if self.verificarVariable(varNombre):
                 print(f"Uso valido de variable {varNombre}")
+
+    def exitIincdec(self, ctx):
+        if ctx.ID():
+            varNombre = ctx.ID().getText()
+            if self.verificarVariable(varNombre):
+                print(f"Uso valido de variable {varNombre} (incremento/decremento)")
 
     def enterIif(self, ctx):
         print("  " * (self.indent - 1) + "Comienza if")
@@ -267,6 +276,7 @@ class Escucha (compiladorListener):
             print(f"ERROR: Prototipo mal formado")
         
         self.parametrosFuncion = []
+        self.parametrosAgregados = False
 
     def exitFuncion(self, ctx):
         print("  "*self.indent + "DEFINICION DE FUNCION")
@@ -296,7 +306,6 @@ class Escucha (compiladorListener):
                 print(f"Se declaro funcion {nombreFuncion}")
                 print(f"  -- Se declara funcion <{nombreFuncion}>")
             
-            self.tabla.marcarUtilizada(nombreFuncion)
             self.parametrosFuncion = []
             self.parametrosAgregados = False
 

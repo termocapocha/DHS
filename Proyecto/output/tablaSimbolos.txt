@@ -1,6 +1,30 @@
 Tabla de Simbolos generada
 
 CONTEXTO 0 (global):
-  - y: variable int
   - x: variable int
+  - z: variable int
+
+CONTEXTO 1 (bloque):
+  - y: variable int
+
+CONTEXTO 2 (bloque):
+  (vacio)
+
+CONTEXTO 3 (bloque):
+  (vacio)
+
+CONTEXTO 4 (bloque):
+  (vacio)
+
+CONTEXTO 5 (bloque):
+  (vacio)
+
+CONTEXTO 6 (bloque):
+  (vacio)
+
+CONTEXTO 7 (bloque):
+  (vacio)
+
+CONTEXTO 8 (bloque):
+  (vacio)
 

@@ -48,7 +48,7 @@ class TablaSimbolos:
         for i in range(len(self.contexto) - 1, -1, -1):
             if keyId in self.contexto[i]:
                 return self.contexto[i][keyId]
-        return False
+        return None
 
     def getNumeroContextos(self):
         return len(self.contexto)

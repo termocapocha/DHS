@@ -133,7 +133,7 @@ listaArgumentos : COMA opal listaArgumentos |;
               
 argumentosLlamada :  opal listaArgumentos|;
 
-ireturn : RETURN (opal|LIT|condicion|) ;
+ireturn : RETURN (opal|) ;
 
 opal : exp
      ;

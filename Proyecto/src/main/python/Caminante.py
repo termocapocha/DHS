@@ -309,7 +309,7 @@ class Caminante(compiladorVisitor):
                 der = self._obtenerValorTermino(rest.termino())
         
         if not op or not der:
-            return "0"
+            return izq
         
         res = self._evaluarComparacion(izq, op, der)
         if res:
@@ -418,9 +418,23 @@ class Caminante(compiladorVisitor):
         
         self.c3d.agregarInstruccion(f"{LInicio}:")
         
-        if ctx.comparacion() and ctx.comparacion().getText():
-            condicion = self._evaluarCondicion(ctx.comparacion())
-            self.c3d.agregarInstruccion(f"ifFalse {condicion} goto {LFin}")
+        if ctx.comparacion():
+            comp = ctx.comparacion()
+            izq = self._obtenerValorTermino(comp.termino()) if comp.termino() else None
+            op = None
+            der = None
+            if comp.comparacionRest():
+                rest = comp.comparacionRest()
+                if rest.COMP():
+                    op = rest.COMP().getText()
+                if rest.termino():
+                    der = self._obtenerValorTermino(rest.termino())
+            if izq and op and der:
+                t = self.nuevaTemporal()
+                self.c3d.operacion(t, izq, op, der)
+                self.c3d.agregarInstruccion(f"ifFalse {t} goto {LFin}")
+            elif izq:
+                self.c3d.agregarInstruccion(f"ifFalse {izq} goto {LFin}")
         
         if ctx.instruccion():
             self.visitInstruccion(ctx.instruccion())
@@ -491,16 +505,12 @@ class Caminante(compiladorVisitor):
         return self.visitChildren(ctx)
 
     def visitIreturn(self, ctx):
-        if hasattr(ctx, 'opal') and ctx.opal():
+        if ctx.opal():
             valor = self.visitOpal(ctx.opal())
-            if valor:
+            if valor is not None:
                 self.c3d.retorno(valor)
-        elif hasattr(ctx, 'condicion') and ctx.condicion():
-            valor = self._evaluarCondicion(ctx.condicion())
-            if valor:
-                self.c3d.retorno(valor)
-        else:
-            self.c3d.retorno()
+                return None
+        self.c3d.retorno()
         return None
 
     # DECLARACION
@@ -656,8 +666,9 @@ class Caminante(compiladorVisitor):
                 for t in temps:
                     usosTemporales.add(t)
             
-            if linea.startswith('ifFalse '):
-                resto = linea[8:]
+            if linea.startswith('ifFalse ') or linea.startswith('ifTrue '):
+                prefix = 'ifFalse ' if linea.startswith('ifFalse ') else 'ifTrue '
+                resto = linea[len(prefix):]
                 idx = resto.rfind(' goto')
                 if idx > 0:
                     cond = resto[:idx].strip()
@@ -762,7 +773,8 @@ class Caminante(compiladorVisitor):
 
     def evalArit(self, e):
         ops = [('+', lambda a,b: a+b), ('-', lambda a,b: a-b), 
-               ('*', lambda a,b: a*b), ('/', lambda a,b: a/b if b != 0 else None)]
+               ('*', lambda a,b: a*b), ('/', lambda a,b: a/b if b != 0 else None),
+               ('%', lambda a,b: a % b)]
         
         for op, func in ops:
             if op in e:
