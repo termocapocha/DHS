@@ -1,0 +1,72 @@
+escaneo:
+r = 0
+t0 = a > b
+ifFalse t0 goto L0
+t2 = b > c
+t3 = t0 && t2
+ifFalse t3 goto L0
+t0 = t3
+L0:
+t0 = 0
+ifFalse t0 goto L1
+r = 1
+goto L2
+L1:
+r = 2
+L2:
+f = 9
+L3:
+t4 = r > 0
+ifFalse t4 goto L5
+t6 = a > 0
+ifFalse t6 goto L6
+t8 = b > 0
+t9 = t6 && t8
+ifFalse t9 goto L6
+t6 = t9
+L6:
+t6 = 0
+t10 = t4 && t6
+ifFalse t10 goto L5
+t4 = t10
+L5:
+t4 = 0
+ifFalse t4 goto L4
+r = (r - 1)
+goto L3
+L4:
+push r
+return
+div:
+c = (a / b)
+push c
+return
+main:
+x = 5
+y = 4
+z = 3
+resultado = 0
+f = 67
+push x
+push y
+push z
+push f
+call escaneo, 4
+pop_args 4
+resultado = pop
+t13 = resultado != 0
+t12 = t13
+ifFalse t12 goto L7
+t14 = resultado <= 10
+t15 = t12 && t14
+ifFalse t15 goto L7
+t12 = t15
+L7:
+t12 = 0
+ifFalse t12 goto L8
+resultado = (resultado + 1)
+goto L9
+L8:
+L9:
+push 0
+return

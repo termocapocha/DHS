@@ -32,6 +32,8 @@ class Escucha (compiladorListener):
         try:
             if self.tabla and self.tabla.devolverID('main'):
                 self.tabla.marcarUtilizada('main')
+            else:
+                print("ERROR SEMANTICO: No se encontro la funcion main")
         except Exception:
             pass
         self.reporteVariablesNoUtilizadas()
@@ -329,10 +331,70 @@ class Escucha (compiladorListener):
                 print(f"ERROR SEMANTICO: {nombreFuncion} no es una funcion")
             else:
                 self.tabla.marcarUtilizada(nombreFuncion)
+                
+                # Validar cantidad y tipo de argumentos
+                params = funcion.getParametros() if hasattr(funcion, 'getParametros') else []
+                numArgsEsperados = len(params) if params else 0
+                
+                numArgsReales = self._contarArgumentosLlamada(ctx)
+                
+                if numArgsReales != numArgsEsperados:
+                    print(f"ERROR SEMANTICO: Funcion {nombreFuncion} espera {numArgsEsperados} argumento(s), pero se pasaron {numArgsReales}")
+                elif numArgsReales > 0:
+                    self._verificarTiposArgumentos(ctx, params)
+                
                 print(f"Llamada valida a funcion {nombreFuncion}")
                 print(f"  -- Llamada valida a <{nombreFuncion}>")
         else:
             print(f"ERROR: Llamada mal formada")
+
+    def _contarArgumentosLlamada(self, ctx):
+        count = 0
+        if hasattr(ctx, 'argumentosLlamada') and ctx.argumentosLlamada():
+            argsCtx = ctx.argumentosLlamada()
+            if hasattr(argsCtx, 'opal') and argsCtx.opal():
+                count += 1
+            if hasattr(argsCtx, 'listaArgumentos') and argsCtx.listaArgumentos():
+                count += self._contarListaArgs(argsCtx.listaArgumentos())
+        return count
+
+    def _contarListaArgs(self, ctx):
+        count = 0
+        if hasattr(ctx, 'opal') and ctx.opal():
+            count += 1
+        if hasattr(ctx, 'listaArgumentos') and ctx.listaArgumentos():
+            count += self._contarListaArgs(ctx.listaArgumentos())
+        return count
+
+    def _verificarTiposArgumentos(self, ctx, params):
+        if not hasattr(ctx, 'argumentosLlamada') or not ctx.argumentosLlamada():
+            return
+        argsCtx = ctx.argumentosLlamada()
+        argsTipos = []
+        if hasattr(argsCtx, 'opal') and argsCtx.opal():
+            t = self._extraerTipoOpal(argsCtx.opal())
+            argsTipos.append(t)
+        if hasattr(argsCtx, 'listaArgumentos') and argsCtx.listaArgumentos():
+            argsTipos.extend(self._extraerTiposLista(argsCtx.listaArgumentos()))
+        
+        for i, (param, tipoReal) in enumerate(zip(params, argsTipos)):
+            tipoEsperado = param.getTipo()
+            if tipoReal and tipoReal != tipoEsperado:
+                print(f"ERROR SEMANTICO: Llamada a {ctx.ID().getText()}, argumento {i+1}: esperaba {tipoEsperado}, pero se paso {tipoReal}")
+
+    def _extraerTipoOpal(self, opal):
+        if not opal:
+            return None
+        return self._tipoDesdeOpal(opal)
+
+    def _extraerTiposLista(self, ctx):
+        tipos = []
+        if hasattr(ctx, 'opal') and ctx.opal():
+            t = self._extraerTipoOpal(ctx.opal())
+            tipos.append(t)
+        if hasattr(ctx, 'listaArgumentos') and ctx.listaArgumentos():
+            tipos.extend(self._extraerTiposLista(ctx.listaArgumentos()))
+        return tipos
 
     def reporteVariablesNoUtilizadas(self):
         print("\n=== REPORTE FINAL ===")

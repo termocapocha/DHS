@@ -415,6 +415,8 @@ class Caminante(compiladorVisitor):
             self.visitAsignacion(ctx.asignacion())
         elif ctx.declaracion():
             self.visitDeclaracion(ctx.declaracion())
+        elif ctx.opal():
+            self.visitOpal(ctx.opal())
         
         self.c3d.agregarInstruccion(f"{LInicio}:")
         
@@ -646,7 +648,7 @@ class Caminante(compiladorVisitor):
             
             lineaMod = linea
             for temp, val in mapa.items():
-                lineaMod = re.sub(rf'\b{re.escape(temp)}\b', val, lineaMod)
+                lineaMod = re.sub(rf'(?<!\w){re.escape(temp)}(?!\w)', val, lineaMod)
             
             resultado.append(lineaMod)
         
@@ -772,25 +774,62 @@ class Caminante(compiladorVisitor):
         return resultado
 
     def evalArit(self, e):
-        ops = [('+', lambda a,b: a+b), ('-', lambda a,b: a-b), 
-               ('*', lambda a,b: a*b), ('/', lambda a,b: a/b if b != 0 else None),
-               ('%', lambda a,b: a % b)]
-        
+        e = e.strip()
+        if not e:
+            return None
+        # Intentar evaluar directamente si es un numero
+        try:
+            val = float(e)
+            if val.is_integer():
+                return str(int(val))
+            return str(val)
+        except:
+            pass
+        # Si hay parentesis, intentar evaluar el interior
+        if e.startswith('(') and e.endswith(')'):
+            inner = self.evalArit(e[1:-1])
+            if inner is not None:
+                return inner
+            return None
+        # Buscar operador de menor precedencia primero (+ / - fuera de parentesis)
+        ops = [('+', lambda a,b: a+b), ('-', lambda a,b: a-b)]
         for op, func in ops:
-            if op in e:
-                parts = e.split(op)
-                if len(parts) == 2:
-                    try:
-                        a = float(parts[0].strip())
-                        b = float(parts[1].strip())
-                        res = func(a, b)
-                        if res is not None:
-                            if float(res).is_integer():
-                                return str(int(res))
-                            return str(res)
-                    except:
-                        pass
+            idx = self._findOpOutsideParens(e, op)
+            if idx > 0:
+                izq = self.evalArit(e[:idx])
+                der = self.evalArit(e[idx+1:])
+                if izq is not None and der is not None:
+                    res = func(float(izq), float(der))
+                    if float(res).is_integer():
+                        return str(int(res))
+                    return str(res)
+                return None
+        
+        ops2 = [('*', lambda a,b: a*b), ('/', lambda a,b: a/b if b != 0 else None),
+                ('%', lambda a,b: a % b)]
+        for op, func in ops2:
+            idx = self._findOpOutsideParens(e, op)
+            if idx > 0:
+                izq = self.evalArit(e[:idx])
+                der = self.evalArit(e[idx+1:])
+                if izq is not None and der is not None:
+                    res = func(float(izq), float(der))
+                    if float(res).is_integer():
+                        return str(int(res))
+                    return str(res)
+                return None
         return None
+
+    def _findOpOutsideParens(self, s, op):
+        parens = 0
+        for i, ch in enumerate(s):
+            if ch == '(':
+                parens += 1
+            elif ch == ')':
+                parens -= 1
+            elif ch == op and parens == 0:
+                return i
+        return -1
 
     def eliminarSaltosRedundantes(self, lineas):
         resultado = []

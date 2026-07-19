@@ -43,7 +43,9 @@ def main(argv):
 
     print("\n" + "="*50)
     
-    tablaFile = "output/tablaSimbolos.txt"
+    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "output")
+    os.makedirs(output_dir, exist_ok=True)
+    tablaFile = os.path.join(output_dir, "tablaSimbolos.txt")
     with open(tablaFile, 'w', encoding='utf-8') as f:
         if parseError:
             f.write("No se pudo generar la tabla de simbolos por error de parseo.\n")
@@ -60,27 +62,27 @@ def main(argv):
             cleanOutput = caminante.codigoOriginal
             optimizado = caminante.codigoOptimizado
             
-            with open("output/CodigoIntermedio.txt", 'w', encoding='utf-8') as f:
+            with open(os.path.join(output_dir, "CodigoIntermedio.txt"), 'w', encoding='utf-8') as f:
                 for linea in cleanOutput:
                     f.write(linea + "\n")
             
-            with open("output/CodigoOptimizado.txt", 'w', encoding='utf-8') as f:
+            with open(os.path.join(output_dir, "CodigoOptimizado.txt"), 'w', encoding='utf-8') as f:
                 for linea in optimizado:
                     f.write(linea + "\n")
             
             codigoIntermedio = "\n".join(cleanOutput)
             
         except Exception as e:
-            with open("output/CodigoIntermedio.txt", 'w', encoding='utf-8') as f:
+            with open(os.path.join(output_dir, "CodigoIntermedio.txt"), 'w', encoding='utf-8') as f:
                 f.write(f"# Error visitando arbol: {type(e).__name__}: {e}\n")
-            with open("output/CodigoOptimizado.txt", 'w', encoding='utf-8') as f:
+            with open(os.path.join(output_dir, "CodigoOptimizado.txt"), 'w', encoding='utf-8') as f:
                 f.write(f"# Error optimizando: {type(e).__name__}: {e}\n")
             parseError = str(e)
     else:
-        with open("output/CodigoIntermedio.txt", 'w', encoding='utf-8') as f:
+        with open(os.path.join(output_dir, "CodigoIntermedio.txt"), 'w', encoding='utf-8') as f:
             f.write(f"# No se pudo generar codigo intermedio por error de parseo.\n")
             f.write(f"# error: {parseError}\n")
-        with open("output/CodigoOptimizado.txt", 'w', encoding='utf-8') as f:
+        with open(os.path.join(output_dir, "CodigoOptimizado.txt"), 'w', encoding='utf-8') as f:
             f.write(f"# No se pudo generar codigo optimizado por error de parseo.\n")
             f.write(f"# error: {parseError}\n")
     

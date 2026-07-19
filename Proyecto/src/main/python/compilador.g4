@@ -94,7 +94,7 @@ ielse : ELSE instruccion
       |
       ;
 
-ifor :FOR PA (asignacion | declaracion |) PYC (comparacion|) PYC (iincdec|)  PC instruccion
+ifor :FOR PA (asignacion | declaracion | opal |) PYC (comparacion|) PYC (iincdec|)  PC instruccion
      ;
      
 declaracion : tipo ID inic listavar
