@@ -43,7 +43,7 @@ def main(argv):
 
     print("\n" + "="*50)
     
-    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "output")
+    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "output")
     os.makedirs(output_dir, exist_ok=True)
     tablaFile = os.path.join(output_dir, "tablaSimbolos.txt")
     with open(tablaFile, 'w', encoding='utf-8') as f:
