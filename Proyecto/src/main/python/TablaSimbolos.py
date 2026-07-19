@@ -145,6 +145,7 @@ class ID:
         self.tipo = tipo
         self.varFunc = varFunc
         self.utilizada = False
+        self.inicializada = False
         self.esParametro = False
 
     def getNombre(self):
@@ -174,14 +175,22 @@ class ID:
     def marcarUtilizada(self):
         self.utilizada = True
         
+    def getInicializada(self):
+        return self.inicializada
+        
+    def marcarInicializada(self):
+        self.inicializada = True
+        
     def esParametro(self):
         return self.esParametro
         
     def setEsParametro(self, esParametro):
         self.esParametro = esParametro
+        if esParametro:
+            self.inicializada = True
 
     def toString(self):
-        return f'(name->{self.nombre},tipo->{self.tipo},varFun->{self.varFunc},utilizada->{self.utilizada})'
+        return f'(name->{self.nombre},tipo->{self.tipo},varFun->{self.varFunc},utilizada->{self.utilizada},inicializada->{self.inicializada})'
 
 
 class FuncionCompilador(ID):

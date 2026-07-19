@@ -192,6 +192,8 @@ class Escucha (compiladorListener):
             self.hay_error_semantico = True
         else:
             variable = ID(idNombre, tipo)
+            if ctx.inic() and ctx.inic().opal():
+                variable.marcarInicializada()
             self.tabla.agregarId(variable)
             print(f"Se declaro variable {idNombre} de tipo {tipo}")
             print(f"  -- Se declaro la variable <{idNombre}> de tipo <{tipo}>")
@@ -223,6 +225,8 @@ class Escucha (compiladorListener):
                     self.hay_error_semantico = True
                 else:
                     variable = ID(varNombre, tipoVar)
+                    if ctx.getChild(2).getText() == '=':
+                        variable.marcarInicializada()
                     self.tabla.agregarId(variable)
                     print(f"Se declaro variable {varNombre} de tipo {tipoVar}")
                     print(f"  -- ListaVar({self.profundidad+1}) Cant. hijos  = {ctx.getChildCount()}")
@@ -288,6 +292,8 @@ class Escucha (compiladorListener):
                     print(f"ERROR SEMANTICO: Incompatibilidad de tipos al asignar {rhsTipo} a {lhsTipo}")
                     self.hay_error_semantico = True
                 else:
+                    if lhs:
+                        lhs.marcarInicializada()
                     print(">>> EXIT ASIGNACION EJECUTADO <<<")
                     print(f"Asignacion valida a variable {varNombre}")
                     print(f"  -- Se asigna un valor a la variable <{varNombre}>")
@@ -302,13 +308,23 @@ class Escucha (compiladorListener):
             if entry and entry.getVarFunc() == "funcion":
                 return
             if self.verificarVariable(varNombre):
-                print(f"Uso valido de variable {varNombre}")
+                entry = self.tabla.devolverID(varNombre)
+                if entry and not entry.getInicializada():
+                    print(f"ERROR SEMANTICO: Variable {varNombre} no inicializada")
+                    self.hay_error_semantico = True
+                else:
+                    print(f"Uso valido de variable {varNombre}")
 
     def exitIincdec(self, ctx):
         if ctx.ID():
             varNombre = ctx.ID().getText()
             if self.verificarVariable(varNombre):
-                print(f"Uso valido de variable {varNombre} (incremento/decremento)")
+                entry = self.tabla.devolverID(varNombre)
+                if entry and not entry.getInicializada():
+                    print(f"ERROR SEMANTICO: Variable {varNombre} no inicializada")
+                    self.hay_error_semantico = True
+                else:
+                    print(f"Uso valido de variable {varNombre} (incremento/decremento)")
 
     def enterIif(self, ctx):
         print("  " * (self.indent - 1) + "Comienza if")
@@ -347,7 +363,7 @@ class Escucha (compiladorListener):
                 print(f"Se declaro funcion {nombreFuncion}")
                 print(f"  -- Se declara funcion <{nombreFuncion}> como prototipo")
         else:
-            print(f"ERROR: Prototipo mal formado")
+            print(f"ERROR SEMANTICO: Prototipo mal formado")
         
         self.parametrosFuncion = []
         self.parametrosAgregados = False
@@ -442,7 +458,7 @@ class Escucha (compiladorListener):
                 print(f"Llamada valida a funcion {nombreFuncion}")
                 print(f"  -- Llamada valida a <{nombreFuncion}>")
         else:
-            print(f"ERROR: Llamada mal formada")
+            print(f"ERROR SEMANTICO: Llamada mal formada")
 
     def _contarArgumentosLlamada(self, ctx):
         count = 0
@@ -508,7 +524,7 @@ class Escucha (compiladorListener):
             print("\n=== TODAS LAS VARIABLES/FUNCIONES FUERON UTILIZADAS ===")
 
     def visitErrorNode(self, node):
-        print(" ---> ERROR")
+        print("ERROR SINTACTICO: nodo de error en el arbol")
         
     def enterEveryRule(self, ctx):
         self.numNodos += 1

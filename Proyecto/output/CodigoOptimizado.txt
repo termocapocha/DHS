@@ -1,19 +1,12 @@
+suma:
+c = 0
+c = (a + b)
+return c
 main:
-x = 0
-L0:
-t0 = x < 10
-ifFalse t0 goto L2
-x = (x + 1)
-t1 = x == 5
-ifFalse t1 goto L3
-goto L1
-L3:
-t2 = x == 8
-ifFalse t2 goto L4
-goto L2
-L4:
-L1:
-goto L0
-L2:
-push x
-return
+x = 10
+y = 20
+resultado = 0
+param x
+param y
+resultado = call suma, 2
+return resultado

@@ -63,21 +63,16 @@ class CodigoTresDirecciones:
         for a in args:
             if a is None:
                 a = '0'
-            self.agregarInstruccion(f"push {a}")
-        if args:
-            self.agregarInstruccion(f"call {nombre}, {len(args)}")
-        else:
-            self.agregarInstruccion(f"call {nombre}")
+            self.agregarInstruccion(f"param {a}")
         ret = self.nuevaTemporal()
-        self.agregarInstruccion(f"{ret} = pop")
-        if args:
-            self.agregarInstruccion(f"pop_args {len(args)}")
+        self.agregarInstruccion(f"{ret} = call {nombre}, {len(args)}")
         return ret
 
     def retorno(self, valor=None):
         if valor is not None:
-            self.agregarInstruccion(f"push {valor}")
-        self.agregarInstruccion("return")
+            self.agregarInstruccion(f"return {valor}")
+        else:
+            self.agregarInstruccion("return")
 
     def retornar(self, valor=None):
         return self.retorno(valor)
