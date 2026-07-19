@@ -84,7 +84,7 @@ class CodigoTresDirecciones:
 
     def escribirCodigo(self, filename=None):
         if filename is None:
-            filename = os.path.join("output", "CodigoIntermedio.txt")
+            filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "output", "CodigoIntermedio.txt")
         folder = os.path.dirname(filename)
         if folder and not os.path.exists(folder):
             try:
