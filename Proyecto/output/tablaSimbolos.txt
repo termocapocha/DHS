@@ -1,17 +1,17 @@
 Tabla de Simbolos generada
 
 CONTEXTO 0 (global):
-  - suma: funcion int
-     parametros: int a, int b
   - main: funcion int
 
 CONTEXTO 1 (funcion):
-  - b: variable int
-  - a: variable int
-  - c: variable int
-
-CONTEXTO 2 (funcion):
   - x: variable int
-  - y: variable int
-  - resultado: variable int
+
+CONTEXTO 2 (while):
+  (vacio)
+
+CONTEXTO 3 (if):
+  (vacio)
+
+CONTEXTO 4 (if):
+  (vacio)
 

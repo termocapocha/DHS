@@ -29,11 +29,6 @@ class Caminante(compiladorVisitor):
         self.codigoOptimizado = optimizado
         self.c3d.output = optimizado
         
-        try:
-            self.c3d.escribirCodigo()
-        except Exception:
-            for l in optimizado:
-                print(l)
         return None
 
     # EXPRESIONES
@@ -727,6 +722,11 @@ class Caminante(compiladorVisitor):
             lineas = self.propagarYCadenas(lineas)
             lineas = self.eliminarTemporalesRedundantes(lineas)
             lineas = self.simplificarExpresiones(lineas)
+            lineas = self.eliminarAsignacionesTriviales(lineas)
+            lineas = self.eliminarAsignacionesSobrescritas(lineas)
+            lineas = self.simplificarEstructurasControl(lineas)
+            lineas = self.eliminarCodigoMuerto(lineas)
+            lineas = self.eliminarEtiquetasVacias(lineas)
             if len(lineas) == originalLen:
                 break
         
@@ -992,4 +992,127 @@ class Caminante(compiladorVisitor):
             resultado.append(linea)
             i += 1
         
+        return resultado
+
+    def eliminarAsignacionesTriviales(self, lineas):
+        resultado = []
+        for linea in lineas:
+            if not isinstance(linea, str):
+                resultado.append(linea)
+                continue
+            if '=' in linea and not linea.startswith('if'):
+                partes = linea.split('=', 1)
+                var = partes[0].strip()
+                expr = partes[1].strip()
+                if var == expr:
+                    continue
+            resultado.append(linea)
+        return resultado
+
+    def eliminarAsignacionesSobrescritas(self, lineas):
+        resultado = []
+        ultima_def = {}
+        for linea in lineas:
+            if not isinstance(linea, str):
+                resultado.append(linea)
+                continue
+            stripped = linea.strip()
+            if self.endsWithLabel(stripped) or self.startsWithGoto(stripped) or self.startsWithIfFalse(stripped) or self.startsWithIfTrue(stripped):
+                ultima_def.clear()
+                resultado.append(linea)
+                continue
+            if '=' in stripped and not stripped.startswith('if'):
+                partes = stripped.split('=', 1)
+                var = partes[0].strip()
+                if var in ultima_def:
+                    idx = ultima_def[var]
+                    resultado[idx] = None
+                ultima_def[var] = len(resultado)
+                resultado.append(linea)
+            else:
+                resultado.append(linea)
+        return [l for l in resultado if l is not None]
+
+    def simplificarEstructurasControl(self, lineas):
+        cambio = True
+        while cambio:
+            cambio = False
+            resultado = []
+            i = 0
+            while i < len(lineas):
+                linea = lineas[i]
+                if not isinstance(linea, str):
+                    resultado.append(linea)
+                    i += 1
+                    continue
+                found = False
+                stripped = linea.strip()
+                if stripped.startswith('ifFalse') and i + 5 < len(lineas):
+                    resto = stripped[len('ifFalse '):]
+                    goto_idx = resto.rfind(' goto ')
+                    if goto_idx > 0:
+                        temp = resto[:goto_idx].strip()
+                        label_else = resto[goto_idx + 6:].strip()
+                        idx_goto_fin = None
+                        idx_label_else = None
+                        idx_label_fin = None
+                        for j in range(i + 1, min(i + 8, len(lineas))):
+                            s = lineas[j].strip() if isinstance(lineas[j], str) else ''
+                            if s.startswith('goto ') and idx_goto_fin is None:
+                                idx_goto_fin = j
+                            if s.endswith(':') and s[:-1].strip() == label_else and idx_label_else is None:
+                                idx_label_else = j
+                            if s.endswith(':') and idx_goto_fin is not None and idx_label_else is not None and j > idx_label_else and idx_label_fin is None:
+                                idx_label_fin = j
+                                break
+                        if idx_goto_fin and idx_label_else and idx_label_fin:
+                            then_body = [lineas[j] for j in range(i + 1, idx_goto_fin)]
+                            else_body = [lineas[j] for j in range(idx_label_else + 1, idx_label_fin)]
+                            if len(then_body) == len(else_body) and all(
+                                (isinstance(a, str) and isinstance(b, str) and a.strip() == b.strip())
+                                for a, b in zip(then_body, else_body)
+                            ):
+                                for line in then_body:
+                                    resultado.append(line)
+                                i = idx_label_fin + 1
+                                cambio = True
+                                found = True
+                if found:
+                    continue
+                resultado.append(linea)
+                i += 1
+            lineas = resultado
+        return lineas
+
+    def eliminarCodigoMuerto(self, lineas):
+        resultado = []
+        muerto = False
+        for linea in lineas:
+            if not isinstance(linea, str):
+                resultado.append(linea)
+                continue
+            stripped = linea.strip()
+            if self.endsWithLabel(stripped):
+                muerto = False
+                resultado.append(linea)
+                continue
+            if muerto:
+                continue
+            resultado.append(linea)
+            if stripped.startswith('return') or stripped.startswith('goto '):
+                muerto = True
+        return resultado
+
+    def eliminarEtiquetasVacias(self, lineas):
+        resultado = []
+        for linea in lineas:
+            if not isinstance(linea, str):
+                resultado.append(linea)
+                continue
+            stripped = linea.strip()
+            if stripped.endswith(':') and len(resultado) > 0:
+                prev = resultado[-1].strip() if isinstance(resultado[-1], str) else ''
+                if prev.endswith(':'):
+                    continue
+            resultado.append(linea)
         return resultado
