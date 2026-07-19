@@ -23,6 +23,7 @@ class Escucha (compiladorListener):
         self._funcionActual = None
         self._tieneReturn = False
         self._profundidadBreakContinue = 0
+        self.hay_error_semantico = False
 
     def enterFuncion(self, ctx):
         print("  Comienza funcion")
@@ -41,6 +42,7 @@ class Escucha (compiladorListener):
                 self.tabla.marcarUtilizada('main')
             else:
                 print("ERROR SEMANTICO: No se encontro la funcion main")
+                self.hay_error_semantico = True
         except Exception:
             pass
         self.reporteVariablesNoUtilizadas()
@@ -157,12 +159,15 @@ class Escucha (compiladorListener):
         if tokenType == compiladorParser.BREAK:
             if self._profundidadBreakContinue <= 0:
                 print("ERROR SEMANTICO: break solo puede usarse dentro de un bucle o switch")
+                self.hay_error_semantico = True
         elif tokenType == compiladorParser.CONTINUE:
             if self._profundidadBreakContinue <= 0:
                 print("ERROR SEMANTICO: continue solo puede usarse dentro de un bucle")
+                self.hay_error_semantico = True
             tipoCtx = self.determinarTipoContexto(node.parentCtx if node.parentCtx else None)
             if tipoCtx == "switch":
                 print("ERROR SEMANTICO: continue no puede usarse dentro de switch")
+                self.hay_error_semantico = True
 
     def enterDeclaracion(self, ctx):
         print("Declaracion ENTER -> <" + ctx.getText() + ">")
@@ -179,10 +184,12 @@ class Escucha (compiladorListener):
         idNombre = ctx.getChild(1).getText()
         if tipo != 'int' and tipo != 'double' and tipo != 'int[]' and tipo != 'double[]':
             print(f"ERROR SEMANTICO: Tipo de dato {tipo} no reconocido por el compilador")
+            self.hay_error_semantico = True
             return
         
         if self.tabla.buscarId(idNombre):
             print(f"ERROR SEMANTICO: La variable {idNombre} ya existe")
+            self.hay_error_semantico = True
         else:
             variable = ID(idNombre, tipo)
             self.tabla.agregarId(variable)
@@ -213,6 +220,7 @@ class Escucha (compiladorListener):
                 
                 if self.tabla.buscarId(varNombre):
                     print(f"ERROR SEMANTICO: Variable {varNombre} ya declarada")
+                    self.hay_error_semantico = True
                 else:
                     variable = ID(varNombre, tipoVar)
                     self.tabla.agregarId(variable)
@@ -226,6 +234,7 @@ class Escucha (compiladorListener):
     def verificarVariable(self, varNombre):
         if not self.tabla.buscarId(varNombre):
             print(f"ERROR SEMANTICO: Variable {varNombre} no declarada")
+            self.hay_error_semantico = True
             return False
         self.tabla.marcarUtilizada(varNombre)
         return True
@@ -277,6 +286,7 @@ class Escucha (compiladorListener):
 
                 if lhsTipo and rhsTipo and lhsTipo != rhsTipo:
                     print(f"ERROR SEMANTICO: Incompatibilidad de tipos al asignar {rhsTipo} a {lhsTipo}")
+                    self.hay_error_semantico = True
                 else:
                     print(">>> EXIT ASIGNACION EJECUTADO <<<")
                     print(f"Asignacion valida a variable {varNombre}")
@@ -326,6 +336,7 @@ class Escucha (compiladorListener):
             
             if self.tabla.buscarId(nombreFuncion):
                 print(f"ERROR SEMANTICO: Funcion {nombreFuncion} ya declarada")
+                self.hay_error_semantico = True
             else:
                 parametros = self.parametrosFuncion.copy()
                 funcion = FuncionCompilador(nombreFuncion, tipoRetorno, parametros)
@@ -360,6 +371,7 @@ class Escucha (compiladorListener):
                     print(f"  (funcion {nombreFuncion} ya estaba marcada como utilizada)")
             elif funcionExistente:
                 print(f"ERROR SEMANTICO: {nombreFuncion} ya existe pero no es una funcion")
+                self.hay_error_semantico = True
             else:
                 funcion = FuncionCompilador(nombreFuncion, tipoRetorno, parametros)
                 try:
@@ -396,6 +408,7 @@ class Escucha (compiladorListener):
                 tipoExpr = self._tipoDesdeOpal(ctx.opal())
                 if tipoExpr and tipoRet and tipoExpr != tipoRet:
                     print(f"ERROR SEMANTICO: Funcion {self._funcionActual} retorna {tipoExpr} pero se esperaba {tipoRet}")
+                    self.hay_error_semantico = True
             elif tipoRet and tipoRet != 'void':
                 print(f"WARNING SEMANTICO: Funcion {self._funcionActual} retorna vacio pero se esperaba {tipoRet}")
 
@@ -407,8 +420,10 @@ class Escucha (compiladorListener):
             funcion = self.tabla.devolverID(nombreFuncion)
             if not funcion:
                 print(f"ERROR SEMANTICO: Funcion {nombreFuncion} no declarada")
+                self.hay_error_semantico = True
             elif funcion.getVarFunc() != "funcion":
                 print(f"ERROR SEMANTICO: {nombreFuncion} no es una funcion")
+                self.hay_error_semantico = True
             else:
                 self.tabla.marcarUtilizada(nombreFuncion)
                 
@@ -420,6 +435,7 @@ class Escucha (compiladorListener):
                 
                 if numArgsReales != numArgsEsperados:
                     print(f"ERROR SEMANTICO: Funcion {nombreFuncion} espera {numArgsEsperados} argumento(s), pero se pasaron {numArgsReales}")
+                    self.hay_error_semantico = True
                 elif numArgsReales > 0:
                     self._verificarTiposArgumentos(ctx, params)
                 
@@ -461,6 +477,7 @@ class Escucha (compiladorListener):
             tipoEsperado = param.getTipo()
             if tipoReal and tipoReal != tipoEsperado:
                 print(f"ERROR SEMANTICO: Llamada a {ctx.ID().getText()}, argumento {i+1}: esperaba {tipoEsperado}, pero se paso {tipoReal}")
+                self.hay_error_semantico = True
 
     def _extraerTipoOpal(self, opal):
         if not opal:

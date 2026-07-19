@@ -1,17 +1,18 @@
 import sys
+import os
 from antlr4 import *
 from compiladorLexer import compiladorLexer
 from compiladorParser import compiladorParser
 from Escucha import Escucha
 from Caminante import Caminante
 from TablaSimbolos import TablaSimbolos
+from errores import SintacticErrorListener
 
 def main(argv):
     archivo = "input/if.txt"
     if len(argv) > 1:
         archivo = argv[1]
 
-    import os
     archivo = os.path.normpath(archivo)
     print(f"Procesando archivo: {archivo}")
     
@@ -19,27 +20,30 @@ def main(argv):
 
     escucha = Escucha()
     tree = None
-    parseError = None
     
-    try:
-        inputStream = FileStream(archivo)
-        lexer = compiladorLexer(inputStream)
-        stream = CommonTokenStream(lexer)
-        parser = compiladorParser(stream)
-        parser.addParseListener(escucha)
-        tree = parser.programa()
-    except FileNotFoundError as e:
-        parseError = f"FileNotFoundError: {e}"
-    except Exception as e:
-        parseError = f"ParseError: {type(e).__name__}: {e}"
+    input_stream = FileStream(archivo, encoding="utf-8")
+    lexer = compiladorLexer(input_stream)
+    lexer.removeErrorListeners()
+    tokens = CommonTokenStream(lexer)
+    parser = compiladorParser(tokens)
+    parser.removeErrorListeners()
 
-    if parseError:
-        print(f"Error leyendo archivo: {parseError}")
+    sintactic_listener = SintacticErrorListener()
+    parser.addErrorListener(sintactic_listener)
+    parser.addParseListener(escucha)
 
-    if not parseError:
-        print("Termina el parsing")
-        print(escucha)
-        print("Prototipo procesado")
+    tree = parser.programa()
+
+    if sintactic_listener.hay_error:
+        print("Se encontraron errores sintacticos. No se puede continuar con la generacion de codigo intermedio.")
+        return
+
+    if escucha.hay_error_semantico:
+        print("Se encontraron errores semanticos. No se puede continuar con la generacion de codigo intermedio.")
+        return
+
+    print("Termina el parsing")
+    print(escucha)
 
     print("\n" + "="*50)
     
@@ -47,69 +51,29 @@ def main(argv):
     os.makedirs(output_dir, exist_ok=True)
     tablaFile = os.path.join(output_dir, "tablaSimbolos.txt")
     with open(tablaFile, 'w', encoding='utf-8') as f:
-        if parseError:
-            f.write("No se pudo generar la tabla de simbolos por error de parseo.\n")
-            f.write(f"# error: {parseError}\n")
-        else:
-            escucha.tabla.exportarTabla(f)
+        escucha.tabla.exportarTabla(f)
     print("Tabla de simbolos exportada")
     
-    codigoIntermedio = ""
-    if not parseError:
-        try:
-            caminante = Caminante()
-            caminante.visit(tree)
-            cleanOutput = caminante.codigoOriginal
-            optimizado = caminante.codigoOptimizado
-            
-            with open(os.path.join(output_dir, "CodigoIntermedio.txt"), 'w', encoding='utf-8') as f:
-                for linea in cleanOutput:
-                    f.write(linea + "\n")
-            
-            with open(os.path.join(output_dir, "CodigoOptimizado.txt"), 'w', encoding='utf-8') as f:
-                for linea in optimizado:
-                    f.write(linea + "\n")
-            
-            codigoIntermedio = "\n".join(cleanOutput)
-            
-        except Exception as e:
-            with open(os.path.join(output_dir, "CodigoIntermedio.txt"), 'w', encoding='utf-8') as f:
-                f.write(f"# Error visitando arbol: {type(e).__name__}: {e}\n")
-            with open(os.path.join(output_dir, "CodigoOptimizado.txt"), 'w', encoding='utf-8') as f:
-                f.write(f"# Error optimizando: {type(e).__name__}: {e}\n")
-            parseError = str(e)
-    else:
-        with open(os.path.join(output_dir, "CodigoIntermedio.txt"), 'w', encoding='utf-8') as f:
-            f.write(f"# No se pudo generar codigo intermedio por error de parseo.\n")
-            f.write(f"# error: {parseError}\n")
-        with open(os.path.join(output_dir, "CodigoOptimizado.txt"), 'w', encoding='utf-8') as f:
-            f.write(f"# No se pudo generar codigo optimizado por error de parseo.\n")
-            f.write(f"# error: {parseError}\n")
+    caminante = Caminante()
+    caminante.visit(tree)
+    cleanOutput = caminante.codigoOriginal
+    optimizado = caminante.codigoOptimizado
+    
+    with open(os.path.join(output_dir, "CodigoIntermedio.txt"), 'w', encoding='utf-8') as f:
+        for linea in cleanOutput:
+            f.write(linea + "\n")
+    
+    with open(os.path.join(output_dir, "CodigoOptimizado.txt"), 'w', encoding='utf-8') as f:
+        for linea in optimizado:
+            f.write(linea + "\n")
     
     print("Codigo intermedio exportado")
     print("Codigo optimizado exportado")
 
     print("=== CODIGO INTERMEDIO ===")
-    if parseError:
-        print(f"No se genero codigo intermedio: {parseError}")
-    else:
-        print(codigoIntermedio)
+    print("\n".join(cleanOutput))
 
-    print("\n=== EJECUTANDO VM ===")
-    if not parseError:
-        try:
-            from VM import VM
-            vm = VM()
-            vm.load(optimizado if optimizado else cleanOutput)
-            vm.run(trace=False)
-            print("\n=== SALIDA VM ===")
-            for line in vm.output_lines:
-                print(line)
-            print("=== FIN VM ===")
-        except Exception as e:
-            print(f"Error ejecutando VM: {type(e).__name__}: {e}")
-    else:
-        print(f"No se pudo ejecutar VM por error de parseo")
+
 
 if __name__ == '__main__':
     main(sys.argv)

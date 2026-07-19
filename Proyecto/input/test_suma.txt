@@ -1,0 +1,12 @@
+int suma(int x, int y) {
+    int a, b, c;
+    a = x;
+    b = y;
+    return a + b;
+}
+
+int main() {
+    int r;
+    r = suma(3, 4);
+    return r;
+}
