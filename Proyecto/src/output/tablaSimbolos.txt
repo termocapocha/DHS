@@ -1,40 +1,17 @@
 Tabla de Simbolos generada
 
 CONTEXTO 0 (global):
-  - div: funcion double
-     parametros: double a, double b
-  - escaneo: funcion int
-     parametros: int a, int b, int c, int f
   - main: funcion int
 
 CONTEXTO 1 (funcion):
-  - f: variable int
-  - c: variable int
-  - b: variable int
-  - a: variable int
-  - r: variable int
-
-CONTEXTO 2 (if):
-  (vacio)
-
-CONTEXTO 3 (else):
-  (vacio)
-
-CONTEXTO 4 (while):
-  (vacio)
-
-CONTEXTO 5 (funcion):
-  - b: variable double
-  - a: variable double
-  - c: variable double
-
-CONTEXTO 6 (funcion):
   - x: variable int
-  - y: variable int
-  - z: variable int
-  - resultado: variable int
-  - f: variable int
 
-CONTEXTO 7 (if):
+CONTEXTO 2 (while):
+  (vacio)
+
+CONTEXTO 3 (if):
+  (vacio)
+
+CONTEXTO 4 (if):
   (vacio)
 

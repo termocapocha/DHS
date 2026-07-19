@@ -8,6 +8,10 @@ class Caminante(compiladorVisitor):
     def __init__(self):
         self.c3d = CodigoTresDirecciones()
         self._modo_expresion = False
+        self._breakLabels = []
+        self._continueLabels = []
+        self._funcionActual = None
+        self._tipoRetornoActual = None
 
     def nuevaTemporal(self):
         return self.c3d.nuevaTemporal()
@@ -38,8 +42,17 @@ class Caminante(compiladorVisitor):
             return ctx.NUMERO().getText()
         elif ctx.DECIMAL():
             return ctx.DECIMAL().getText()
+        elif ctx.STRING():
+            s = ctx.STRING().getText()
+            return s
         elif ctx.ID():
-            return ctx.ID().getText()
+            idName = ctx.ID().getText()
+            if ctx.PA() and ctx.exp():
+                index = self.visitExp(ctx.exp())
+                t = self.nuevaTemporal()
+                self.c3d.agregarInstruccion(f"{t} = {idName}[{index}]")
+                return t
+            return idName
         elif ctx.exp():
             return self.visitExp(ctx.exp())
         elif ctx.llamada():
@@ -162,6 +175,10 @@ class Caminante(compiladorVisitor):
         return self.visitChildren(ctx)
 
     def visitInstruccion(self, ctx):
+        if ctx.BREAK():
+            return self.visitBreak(ctx)
+        if ctx.CONTINUE():
+            return self.visitContinue(ctx)
         return self.visitChildren(ctx)
 
     # ASIGNACION
@@ -170,6 +187,8 @@ class Caminante(compiladorVisitor):
             variable = ctx.ID().getText()
             valor = self.visitOpal(ctx.opal())
             if valor is not None:
+                if ctx.getChildCount() > 2 and ctx.getChild(1).getText() == '=' and ctx.getChild(2).getText() == '[':
+                    pass
                 self.c3d.asignacion(variable, valor)
         return None
 
@@ -193,7 +212,7 @@ class Caminante(compiladorVisitor):
     def visitIif(self, ctx):
         condicion_ctx = ctx.condicion()
         instruccion_if = ctx.instruccion()
-        ielse_ctx = ctx.ielse()
+        ielse_ctx = ctx.ielse2()
         
         es_simple = self._esCondicionSimple(condicion_ctx)
         
@@ -239,22 +258,25 @@ class Caminante(compiladorVisitor):
         
         tiene_else = ielse_ctx is not None and ielse_ctx.getChildCount() > 0
         
+        temp = self.nuevaTemporal()
+        self.c3d.operacion(temp, izq, op, der)
+        
         if not tiene_else:
             LExit = self.nuevoLabel()
-            self.c3d.agregarInstruccion(f"ifFalse {izq} {op} {der} goto {LExit}")
+            self.c3d.agregarInstruccion(f"ifFalse {temp} goto {LExit}")
             if instruccion_if:
                 self.visitInstruccion(instruccion_if)
             self.c3d.agregarInstruccion(f"{LExit}:")
         else:
             LElse = self.nuevoLabel()
             LExit = self.nuevoLabel()
-            self.c3d.agregarInstruccion(f"ifFalse {izq} {op} {der} goto {LElse}")
+            self.c3d.agregarInstruccion(f"ifFalse {temp} goto {LElse}")
             if instruccion_if:
                 self.visitInstruccion(instruccion_if)
             self.c3d.agregarInstruccion(f"goto {LExit}")
             self.c3d.agregarInstruccion(f"{LElse}:")
             if ielse_ctx:
-                self.visitIelse(ielse_ctx)
+                self.visitIelse2(ielse_ctx)
             self.c3d.agregarInstruccion(f"{LExit}:")
 
     def _generarIfCompleto(self, ctx, instruccion_if, ielse_ctx):
@@ -275,7 +297,7 @@ class Caminante(compiladorVisitor):
             self.c3d.agregarInstruccion(f"goto {LExit}")
             self.c3d.agregarInstruccion(f"{LElse}:")
             if ielse_ctx:
-                self.visitIelse(ielse_ctx)
+                self.visitIelse2(ielse_ctx)
             self.c3d.agregarInstruccion(f"{LExit}:")
 
     def _evaluarCondicion(self, ctx):
@@ -388,10 +410,110 @@ class Caminante(compiladorVisitor):
             return self._evaluarCondicion(ctx.condicion())
         return None
 
+    # BREAK / CONTINUE
+    def visitBreak(self, ctx):
+        if self._breakLabels:
+            self.c3d.agregarInstruccion(f"goto {self._breakLabels[-1]}")
+        return None
+
+    def visitContinue(self, ctx):
+        if self._continueLabels:
+            self.c3d.agregarInstruccion(f"goto {self._continueLabels[-1]}")
+        return None
+
+    # DO-WHILE
+    def visitIdowhile(self, ctx):
+        LInicio = self.nuevoLabel()
+        LContinue = self.nuevoLabel()
+        LFin = self.nuevoLabel()
+        
+        self._breakLabels.append(LFin)
+        self._continueLabels.append(LContinue)
+        
+        self.c3d.agregarInstruccion(f"{LInicio}:")
+        
+        if ctx.instruccion():
+            self.visitInstruccion(ctx.instruccion())
+        
+        self.c3d.agregarInstruccion(f"{LContinue}:")
+        
+        if ctx.condicion():
+            condicion = self._evaluarCondicion(ctx.condicion())
+            self.c3d.agregarInstruccion(f"ifTrue {condicion} goto {LInicio}")
+        
+        self.c3d.agregarInstruccion(f"{LFin}:")
+        
+        self._breakLabels.pop()
+        self._continueLabels.pop()
+        return None
+
+    # SWITCH
+    def visitIswitch(self, ctx):
+        LFin = self.nuevoLabel()
+        self._breakLabels.append(LFin)
+        
+        valorSwitch = self._evaluarCondicion(ctx.condicion()) if ctx.condicion() else '0'
+        
+        casos = []
+        tieneDefault = False
+        if ctx.casosSwitch():
+            self._recogerCasos(ctx.casosSwitch(), casos)
+        
+        labelsCasos = []
+        for i, c in enumerate(casos):
+            lbl = self.nuevoLabel()
+            labelsCasos.append(lbl)
+        
+        for i, caso in enumerate(casos):
+            if caso is None:
+                continue
+            t = self.nuevaTemporal()
+            self.c3d.agregarInstruccion(f"{t} = {valorSwitch} == {caso}")
+            self.c3d.agregarInstruccion(f"ifTrue {t} goto {labelsCasos[i]}")
+        
+        if not tieneDefault:
+            self.c3d.agregarInstruccion(f"goto {LFin}")
+        
+        idx = 0
+        if ctx.casosSwitch():
+            self._visitarCasos(ctx.casosSwitch(), labelsCasos, idx, LFin)
+        
+        self.c3d.agregarInstruccion(f"{LFin}:")
+        self._breakLabels.pop()
+        return None
+
+    def _recogerCasos(self, ctx, casos):
+        if ctx.CASE() and ctx.opal():
+            val = self.visitOpal(ctx.opal())
+            casos.append(val)
+            if ctx.casosSwitch():
+                self._recogerCasos(ctx.casosSwitch(), casos)
+        elif ctx.DEFAULT():
+            casos.append(None)
+
+    def _visitarCasos(self, ctx, labelsCasos, idx, LFin):
+        if ctx.CASE():
+            if idx < len(labelsCasos):
+                self.c3d.agregarInstruccion(f"{labelsCasos[idx]}:")
+            if ctx.instrucciones():
+                self.visitInstrucciones(ctx.instrucciones())
+            self.c3d.agregarInstruccion(f"goto {LFin}")
+            if ctx.casosSwitch():
+                self._visitarCasos(ctx.casosSwitch(), labelsCasos, idx + 1, LFin)
+        elif ctx.DEFAULT():
+            lblDefault = self.nuevoLabel()
+            self.c3d.agregarInstruccion(f"{lblDefault}:")
+            if ctx.instrucciones():
+                self.visitInstrucciones(ctx.instrucciones())
+
     # WHILE
     def visitIwhile(self, ctx):
         LInicio = self.nuevoLabel()
+        LContinue = self.nuevoLabel()
         LFin = self.nuevoLabel()
+        
+        self._breakLabels.append(LFin)
+        self._continueLabels.append(LContinue)
         
         self.c3d.agregarInstruccion(f"{LInicio}:")
         
@@ -402,14 +524,22 @@ class Caminante(compiladorVisitor):
         if ctx.instruccion():
             self.visitInstruccion(ctx.instruccion())
         
+        self.c3d.agregarInstruccion(f"{LContinue}:")
         self.c3d.agregarInstruccion(f"goto {LInicio}")
         self.c3d.agregarInstruccion(f"{LFin}:")
+        
+        self._breakLabels.pop()
+        self._continueLabels.pop()
         return None
 
     # FOR
     def visitIfor(self, ctx):
         LInicio = self.nuevoLabel()
+        LContinue = self.nuevoLabel()
         LFin = self.nuevoLabel()
+        
+        self._breakLabels.append(LFin)
+        self._continueLabels.append(LContinue)
         
         if ctx.asignacion():
             self.visitAsignacion(ctx.asignacion())
@@ -441,32 +571,41 @@ class Caminante(compiladorVisitor):
         if ctx.instruccion():
             self.visitInstruccion(ctx.instruccion())
         
+        self.c3d.agregarInstruccion(f"{LContinue}:")
         if ctx.iincdec():
             self.visitIincdec(ctx.iincdec())
         
         self.c3d.agregarInstruccion(f"goto {LInicio}")
         self.c3d.agregarInstruccion(f"{LFin}:")
+        
+        self._breakLabels.pop()
+        self._continueLabels.pop()
         return None
 
     # FUNCIONES
     def visitFuncion(self, ctx):
-        nombre = None
         if hasattr(ctx, 'ID') and ctx.ID():
-            nombre = ctx.ID().getText()
+            self._funcionActual = ctx.ID().getText()
+            if hasattr(ctx, 'tipo') and ctx.tipo():
+                self._tipoRetornoActual = ctx.tipo().getText()
         
-        if nombre:
-            self.c3d.agregarInstruccion(f"{nombre}:")
+        if self._funcionActual:
+            self.c3d.agregarInstruccion(f"{self._funcionActual}:")
         
         if hasattr(ctx, 'bloque') and ctx.bloque():
             self.visitBloque(ctx.bloque())
         
+        self._funcionActual = None
+        self._tipoRetornoActual = None
         return None
 
     def visitProto(self, ctx):
         return None
 
-    def visitIelse(self, ctx):
-        if hasattr(ctx, 'instruccion') and ctx.instruccion():
+    def visitIelse2(self, ctx):
+        if hasattr(ctx, 'iif') and ctx.iif():
+            self.visitIif(ctx.iif())
+        elif hasattr(ctx, 'instruccion') and ctx.instruccion():
             self.visitInstruccion(ctx.instruccion())
         return None
 

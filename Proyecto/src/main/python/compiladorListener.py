@@ -1,4 +1,4 @@
-# Generated from compilador.g4 by ANTLR 4.13.1
+# Generated from compilador.g4 by ANTLR 4.13.2
 from antlr4 import *
 if "." in __name__:
     from .compiladorParser import compiladorParser
@@ -53,12 +53,48 @@ class compiladorListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by compiladorParser#idowhile.
+    def enterIdowhile(self, ctx:compiladorParser.IdowhileContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#idowhile.
+    def exitIdowhile(self, ctx:compiladorParser.IdowhileContext):
+        pass
+
+
     # Enter a parse tree produced by compiladorParser#iif.
     def enterIif(self, ctx:compiladorParser.IifContext):
         pass
 
     # Exit a parse tree produced by compiladorParser#iif.
     def exitIif(self, ctx:compiladorParser.IifContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#ielse2.
+    def enterIelse2(self, ctx:compiladorParser.Ielse2Context):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#ielse2.
+    def exitIelse2(self, ctx:compiladorParser.Ielse2Context):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#iswitch.
+    def enterIswitch(self, ctx:compiladorParser.IswitchContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#iswitch.
+    def exitIswitch(self, ctx:compiladorParser.IswitchContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladorParser#casosSwitch.
+    def enterCasosSwitch(self, ctx:compiladorParser.CasosSwitchContext):
+        pass
+
+    # Exit a parse tree produced by compiladorParser#casosSwitch.
+    def exitCasosSwitch(self, ctx:compiladorParser.CasosSwitchContext):
         pass
 
 
@@ -131,15 +167,6 @@ class compiladorListener(ParseTreeListener):
 
     # Exit a parse tree produced by compiladorParser#termino.
     def exitTermino(self, ctx:compiladorParser.TerminoContext):
-        pass
-
-
-    # Enter a parse tree produced by compiladorParser#ielse.
-    def enterIelse(self, ctx:compiladorParser.IelseContext):
-        pass
-
-    # Exit a parse tree produced by compiladorParser#ielse.
-    def exitIelse(self, ctx:compiladorParser.IelseContext):
         pass
 
 

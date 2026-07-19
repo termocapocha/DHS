@@ -95,5 +95,21 @@ def main(argv):
     else:
         print(codigoIntermedio)
 
+    print("\n=== EJECUTANDO VM ===")
+    if not parseError:
+        try:
+            from VM import VM
+            vm = VM()
+            vm.load(optimizado if optimizado else cleanOutput)
+            vm.run(trace=False)
+            print("\n=== SALIDA VM ===")
+            for line in vm.output_lines:
+                print(line)
+            print("=== FIN VM ===")
+        except Exception as e:
+            print(f"Error ejecutando VM: {type(e).__name__}: {e}")
+    else:
+        print(f"No se pudo ejecutar VM por error de parseo")
+
 if __name__ == '__main__':
     main(sys.argv)

@@ -1,4 +1,4 @@
-# Generated from compilador.g4 by ANTLR 4.13.1
+# Generated from compilador.g4 by ANTLR 4.13.2
 from antlr4 import *
 if "." in __name__:
     from .compiladorParser import compiladorParser
@@ -34,8 +34,28 @@ class compiladorVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by compiladorParser#idowhile.
+    def visitIdowhile(self, ctx:compiladorParser.IdowhileContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by compiladorParser#iif.
     def visitIif(self, ctx:compiladorParser.IifContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#ielse2.
+    def visitIelse2(self, ctx:compiladorParser.Ielse2Context):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#iswitch.
+    def visitIswitch(self, ctx:compiladorParser.IswitchContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by compiladorParser#casosSwitch.
+    def visitCasosSwitch(self, ctx:compiladorParser.CasosSwitchContext):
         return self.visitChildren(ctx)
 
 
@@ -76,11 +96,6 @@ class compiladorVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by compiladorParser#termino.
     def visitTermino(self, ctx:compiladorParser.TerminoContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by compiladorParser#ielse.
-    def visitIelse(self, ctx:compiladorParser.IelseContext):
         return self.visitChildren(ctx)
 
 

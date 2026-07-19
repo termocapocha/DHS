@@ -10,6 +10,8 @@ LLC : '}' ;
 PYC : ';' ;
 ASIG : '=' ;
 COMA : ',' ;
+LA : '[' ;
+LC : ']' ;
 SUMA : '+' ;
 RESTA : '-' ;
 MULT : '*' ;
@@ -21,9 +23,9 @@ OR : '||' ;
 COMP : '==' | '!=' | '<' | '<=' | '>' | '>=' ;
 LIT : 'true' | 'false' ;
 
-
 NUMERO : DIGITO+ ;
 DECIMAL : DIGITO+ '.' DIGITO+ ;
+STRING : '"' (~["\n\r])* '"' ;
 
 INT : 'int' ;
 DOUBLE : 'double' ;
@@ -32,15 +34,19 @@ ELSE :  'else' ;
 FOR :   'for' ;
 WHILE : 'while' ;
 RETURN : 'return' ;
+BREAK : 'break' ;
+CONTINUE : 'continue' ;
+SWITCH : 'switch' ;
+CASE : 'case' ;
+DEFAULT : 'default' ;
+DO : 'do' ;
 
 ID : (LETRA | '_')(LETRA | DIGITO | '_')* ;
 
 WS : [ \n\r\t] -> skip ;
 OTRO : . ;
 
-
-
-programa : instrucciones EOF ; //entrada
+programa : instrucciones EOF ;
 
 instrucciones : instruccion instrucciones
               |
@@ -53,6 +59,10 @@ instruccion : asignacion PYC
             | ifor
             | iif
             | iwhile
+            | idowhile
+            | iswitch
+            | BREAK PYC
+            | CONTINUE PYC
             | funcion
             | proto
             | llamada PYC
@@ -63,36 +73,46 @@ bloque : LLA instrucciones LLC ;
 
 iwhile : WHILE PA condicion PC instruccion;
 
-iif : IF PA condicion PC instruccion ielse ;
+idowhile : DO instruccion WHILE PA condicion PC PYC ;
+
+iif : IF PA condicion PC instruccion ielse2 ;
+
+ielse2 : ELSE iif
+       | ELSE instruccion
+       |
+       ;
+
+iswitch : SWITCH PA condicion PC LLA casosSwitch LLC ;
+
+casosSwitch : CASE opal PC instrucciones casosSwitch
+            | DEFAULT PC instrucciones
+            |
+            ;
 
 condicion : orExp ;
 
-orExp : andExp orExpRest ;  // maneja los OR
+orExp : andExp orExpRest ;
 
 orExpRest : OR andExp orExpRest
           |
           ;
 
-andExp : comparacion andExpRest ; // maneja los AND
+andExp : comparacion andExpRest ;
 
 andExpRest : AND comparacion andExpRest
            |
            ;
 
-comparacion : termino comparacionRest ; //lo que dice el nombre
+comparacion : termino comparacionRest ;
 
 comparacionRest : COMP termino
                 |
                 ;
 
-termino : opal      //soluciona problema de los ()
-        | LIT 
+termino : opal
+        | LIT
         | PA condicion PC
         ;
-
-ielse : ELSE instruccion
-      |
-      ;
 
 ifor :FOR PA (asignacion | declaracion | opal |) PYC (comparacion|) PYC (iincdec|)  PC instruccion
      ;
@@ -110,25 +130,27 @@ inic : ASIG opal
 
 tipo : INT
      | DOUBLE
+     | INT LA LC
+     | DOUBLE LA LC
      ;
 
-
-
-iincdec : ID INCDEC //new
+iincdec : ID INCDEC
         | INCDEC ID
         ;
 
-asignacion : ID ASIG opal ;
+asignacion : ID ASIG opal
+           | ID LA exp LC ASIG opal
+           ;
 
-funcion: tipo ID PA argumento PC bloque; //int funcion(int x, double y,..){}
+funcion: tipo ID PA argumento PC bloque;
 
-proto: tipo ID PA argumento PC PYC ; //int funcion(int x, double y,...);
+proto: tipo ID PA argumento PC PYC ;
 
-llamada: ID PA argumentosLlamada PC ; //funcion(x,y,...);
+llamada: ID PA argumentosLlamada PC ;
 
-argumento: tipo ID listaParametros|;  //el vacio es por si llego a tener una llamada "imprimir()"
+argumento: tipo ID listaParametros|;
            
-listaParametros : COMA tipo ID listaParametros |; //mod
+listaParametros : COMA tipo ID listaParametros |;
 listaArgumentos : COMA opal listaArgumentos |;
               
 argumentosLlamada :  opal listaArgumentos|;
@@ -155,7 +177,9 @@ t : MULT factor t
 
 factor : NUMERO
        | DECIMAL
+       | STRING
        | ID
+       | ID LA exp LC
        | PA exp PC
        | llamada
        ;
