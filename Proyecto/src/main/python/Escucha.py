@@ -1,4 +1,3 @@
-# === IMPORTS ===
 from antlr4 import TerminalNode
 from antlr4 import ErrorNode
 from compiladorParser import compiladorParser

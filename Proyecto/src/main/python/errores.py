@@ -1,4 +1,3 @@
-# === IMPORTS ===
 from antlr4.error.ErrorListener import ErrorListener
 
 # === LISTENER DE ERRORES SINTACTICOS ===
