@@ -1,3 +1,0 @@
-int suma(int a, int b);
-int x = 5;
-suma(x, x);

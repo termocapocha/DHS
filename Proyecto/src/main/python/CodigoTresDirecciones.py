@@ -1,5 +1,6 @@
 import os
 
+# === GENERADOR DE CODIGO DE TRES DIRECCIONES ===
 class CodigoTresDirecciones:
     def __init__(self):
         self.output = []

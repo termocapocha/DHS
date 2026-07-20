@@ -1,18 +1,41 @@
-main:
-x = 0
+x = 2
+pi = 3.14
+suma:
+resultado = 0
+resultado = (a + b)
+return resultado
+factorial:
+t0 = n <= 1
+ifFalse t0 goto L0
+return 1
 L0:
-t0 = x < 10
-ifFalse t0 goto L2
-x = (x + 1)
-t1 = x == 5
-ifFalse t1 goto L3
-goto L1
-L3:
-t2 = x == 8
-ifFalse t2 goto L4
+param (n - 1)
+t1 = call factorial, 1
+return (n * t1)
+main:
+i = 0
+sum = 0
+fact = 0
+L1:
+t2 = i < 5
+ifFalse t2 goto L3
+i = (i + 1)
+t3 = i == 3
+ifFalse t3 goto L4
 goto L2
 L4:
-L1:
-goto L0
+param sum
+param i
+t4 = call suma, 2
+sum = t4
 L2:
-return x
+goto L1
+L3:
+param x
+t5 = call factorial, 1
+fact = t5
+param fact
+param 10
+t6 = call suma, 2
+r = t6
+return r

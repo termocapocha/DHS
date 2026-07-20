@@ -1,8 +1,10 @@
+# === IMPORTS ===
 import re
 from compiladorVisitor import compiladorVisitor
 from compiladorParser import compiladorParser
 from CodigoTresDirecciones import CodigoTresDirecciones
 
+# === VISITOR: GENERACION DE CODIGO INTERMEDIO ===
 class Caminante(compiladorVisitor):
     
     def __init__(self):
@@ -165,7 +167,7 @@ class Caminante(compiladorVisitor):
             pass
         return None
 
-    # STATEMENTS
+    # INSTRUCCIONES
     def visitInstrucciones(self, ctx):
         return self.visitChildren(ctx)
 
@@ -337,7 +339,6 @@ class Caminante(compiladorVisitor):
         return t
 
     def _evaluarExpresionBooleana(self, ctx):
-        # ctx is orExp context
         andExp = ctx.andExp()
         if not andExp:
             return "0"
@@ -346,7 +347,6 @@ class Caminante(compiladorVisitor):
         
         self._evaluarAndGroup(andExp, result)
         
-        # Process OR chain with short-circuit
         if ctx.orExpRest() and ctx.orExpRest().getChildCount() > 0:
             LEnd = self.nuevoLabel()
             self._procesarOrChain(ctx.orExpRest(), result, LEnd)
@@ -709,7 +709,7 @@ class Caminante(compiladorVisitor):
     def visitListaParametros(self, ctx):
         return None
 
-    # OPTIMIZACIONES
+    # === OPTIMIZACIONES ===
     def optimizarOutput(self, lineas):
         if lineas is None:
             return []

@@ -1,5 +1,7 @@
+# === IMPORTS ===
 from antlr4.error.ErrorListener import ErrorListener
 
+# === LISTENER DE ERRORES SINTACTICOS ===
 class SintacticErrorListener(ErrorListener):
     def __init__(self):
         self.hay_error = False

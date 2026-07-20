@@ -1,3 +1,4 @@
+# === TABLA DE SIMBOLOS (SINGLETON) ===
 class TablaSimbolos:
     tablaUnica = None
 
@@ -139,6 +140,7 @@ class TablaSimbolos:
         self.contexto[0][ID.getNombre()] = ID
 
 
+# === CLASE ID: VARIABLES Y FUNCIONES ===
 class ID:
     def __init__(self, nombre, tipo, varFunc="variable"):
         self.nombre = nombre
@@ -193,6 +195,7 @@ class ID:
         return f'(name->{self.nombre},tipo->{self.tipo},varFun->{self.varFunc},utilizada->{self.utilizada},inicializada->{self.inicializada})'
 
 
+# === CLASE FuncionCompilador: EXTENSION DE ID PARA FUNCIONES ===
 class FuncionCompilador(ID):
     def __init__(self, nombre, tipo, parametros):
         super().__init__(nombre, tipo, "funcion")

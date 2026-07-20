@@ -1,9 +1,11 @@
+# === IMPORTS ===
 from antlr4 import TerminalNode
 from antlr4 import ErrorNode
 from compiladorParser import compiladorParser
 from compiladorListener import compiladorListener
 from TablaSimbolos import *
 
+# === LISTENER SEMANTICO ===
 class Escucha (compiladorListener):
     
     indent = 1
@@ -88,6 +90,7 @@ class Escucha (compiladorListener):
                     ancestro = ancestro.parentCtx
         return tipoContexto
 
+    # === CONTEXTO Y BLOQUES ===
     def enterBloque(self, ctx):
         print("  "*self.indent + "Abriendo Bloque")
         tipoContexto = self.determinarTipoContexto(ctx)
@@ -124,6 +127,7 @@ class Escucha (compiladorListener):
             pass
         print(f"Contextos restantes: {self.tabla.getNumeroContextos()}")
 
+    # === ESTRUCTURAS DE CONTROL ===
     def enterIwhile(self, ctx):
         print("  "*self.indent + "Comienza while")
         self.indent += 1
@@ -169,6 +173,7 @@ class Escucha (compiladorListener):
                 print("ERROR SEMANTICO: continue no puede usarse dentro de switch")
                 self.hay_error_semantico = True
 
+    # === DECLARACIONES ===
     def enterDeclaracion(self, ctx):
         print("Declaracion ENTER -> <" + ctx.getText() + ">")
         print("Cant. hijos = " + str(ctx.getChildCount()))
@@ -235,6 +240,7 @@ class Escucha (compiladorListener):
     def __str__(self):
         return f"Se hicieron {self.declaracion} declaraciones\nSe visitaron {self.numNodos} nodos"
 
+    # === VERIFICACION DE VARIABLES ===
     def verificarVariable(self, varNombre):
         if not self.tabla.buscarId(varNombre):
             print(f"ERROR SEMANTICO: Variable {varNombre} no declarada")
@@ -279,6 +285,7 @@ class Escucha (compiladorListener):
             return funcEntry.getTipo() if funcEntry else None
         return None
 
+    # === ASIGNACIONES ===
     def exitAsignacion(self, ctx):
         if ctx.ID():
             varNombre = ctx.ID().getText()
@@ -341,6 +348,7 @@ class Escucha (compiladorListener):
         self.parametrosFuncion.append(parametro)
         print(f"  -- Parametro acumulado: {nombreParam}")
 
+    # === FUNCIONES Y PROTOTIPOS ===
     def exitProto(self, ctx):
         print("  "*self.indent + "PROTOTIPO DE FUNCION")
         
@@ -416,6 +424,7 @@ class Escucha (compiladorListener):
         if ctx.getChildCount() == 4:
             self.agregarParametro(ctx.getChild(1).getText(), ctx.getChild(2).getText(), False)
 
+    # === RETURN ===
     def exitIreturn(self, ctx):
         self._tieneReturn = True
         if hasattr(self, '_funcionActual') and self._funcionActual:
@@ -428,6 +437,7 @@ class Escucha (compiladorListener):
             elif tipoRet and tipoRet != 'void':
                 print(f"WARNING SEMANTICO: Funcion {self._funcionActual} retorna vacio pero se esperaba {tipoRet}")
 
+    # === LLAMADAS A FUNCIONES ===
     def exitLlamada(self, ctx):
         print("  "*self.indent + "LLAMADA A FUNCION")
         
@@ -509,6 +519,7 @@ class Escucha (compiladorListener):
             tipos.extend(self._extraerTiposLista(ctx.listaArgumentos()))
         return tipos
 
+    # === REPORTE FINAL ===
     def reporteVariablesNoUtilizadas(self):
         print("\n=== REPORTE FINAL ===")
         print("Analisis completado exitosamente")

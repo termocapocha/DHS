@@ -1,17 +1,34 @@
 Tabla de Simbolos generada
 
 CONTEXTO 0 (global):
+  - factorial: funcion int
+     parametros: int n
+  - x: variable int
+  - pi: variable double
+  - suma: funcion int
+     parametros: int a, int b
   - main: funcion int
 
 CONTEXTO 1 (funcion):
-  - x: variable int
+  - b: variable int
+  - a: variable int
+  - resultado: variable int
 
-CONTEXTO 2 (while):
-  (vacio)
+CONTEXTO 2 (funcion):
+  - n: variable int
 
 CONTEXTO 3 (if):
   (vacio)
 
-CONTEXTO 4 (if):
+CONTEXTO 4 (funcion):
+  - i: variable int
+  - sum: variable int
+  - fact: variable int
+  - r: variable int
+
+CONTEXTO 5 (while):
+  (vacio)
+
+CONTEXTO 6 (if):
   (vacio)
 
